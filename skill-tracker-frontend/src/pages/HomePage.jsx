@@ -1,0 +1,59 @@
+// src/pages/HomePage.jsx
+import React from "react";
+import Navbar from "../components/Navbar";
+import HeroSection from "../components/home/HeroSection";
+import FeaturesSection from "../components/home/FeaturesSection";
+import Footer from "../components/home/Footer";
+import ProblemSection from "../components/home/ProblemSection";
+import TestimonialSection from "../components/home/TestimonialSection";
+import CallToActionSection from "../components/home/CallToActionSection";
+import { useTheme } from "../components/ThemeProvider";
+import TargetCursor from "../components/Animations/TargetCursor/TargetCursor";
+
+export default function HomePage() {
+  const { theme, getActualTheme } = useTheme();
+
+  // Get the actual theme that should be applied
+  const isDark = getActualTheme() === "dark";
+
+  // Get background based on theme
+  const getBackground = () => {
+    if (theme === "system") {
+      return "bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]";
+    } else if (theme === "dark") {
+      return "bg-black";
+    } else {
+      return "bg-white";
+    }
+  };
+
+  // Get text color based on theme
+  const getTextColor = () => {
+    if (theme === "system" || theme === "dark") {
+      return "text-white";
+    } else {
+      return "text-gray-900";
+    }
+  };
+
+  return (
+    <div
+      className={`relative  ${getBackground()} ${getTextColor()} transition-all duration-500`}
+    >
+      <TargetCursor />
+
+      {/* If Navbar is fixed/sticky, keep it OUTSIDE the scroll container */}
+      <Navbar />
+
+      {/* Main Content Container */}
+      <div className="relative" id="scroll-container">
+        <HeroSection />
+        <ProblemSection />
+        <FeaturesSection />
+        <TestimonialSection />
+        <CallToActionSection />
+        <Footer />
+      </div>
+    </div>
+  );
+}

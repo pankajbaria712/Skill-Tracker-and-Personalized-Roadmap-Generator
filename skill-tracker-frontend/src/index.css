@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/* Ensure proper viewport handling */
+#root {
+  height: 100%;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Define the gradient shift animation */
+@keyframes gradient-shift-subtle {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Apply the animation */
+.animate-gradient-shift-subtle {
+  background-size: 400% 400%; /* Make the gradient larger than the viewport */
+  animation: gradient-shift-subtle 15s ease infinite; /* Adjust time for speed */
+}
+
+/* In your global CSS */
+:root {
+  --sidebar-width: 240px; /* will be overridden by the component */
+}
+
+/* Example: main content wrapper */
+.main-content {
+  transition: padding-left 180ms ease;
+  padding-left: var(--sidebar-width);
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradientMove {
+  animation: gradientMove 12s ease infinite;
+}
+
+/* Add to your global CSS file */
+.problem-overlap-section {
+  box-shadow: 0 -40px 80px -40px #070030;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
