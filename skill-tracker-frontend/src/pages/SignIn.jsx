@@ -333,7 +333,7 @@ export default function SignIn() {
           Continue with Google
         </motion.button>
       </motion.div>
-      <style jsx>{`
+      <style>{`
         /* Custom CSS for the loading spinner and background blobs */
         .loader {
           border-color: #a855f7;

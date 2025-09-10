@@ -3,14 +3,17 @@ import {
   register,
   googleSignIn,
   login,
+  getMe,
 } from "../controllers/authController.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.post("/register", register);
 router.post("/google", googleSignIn);
-router.post("/login", login); // New login route
+router.post("/login", login);
 
-// Protected profile routes
+// ✅ New protected route
+router.get("/me", authMiddleware, getMe);
 
 export default router;

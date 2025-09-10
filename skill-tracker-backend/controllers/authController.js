@@ -92,3 +92,26 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// ===================
+// Get Current User (/me)
+// ===================
+export const getMe = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    // Look up the full user from MongoDB using uid
+    const user = await User.findOne({ uid: req.user.id });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user });
+  } catch (err) {
+    console.error("GetMe error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
