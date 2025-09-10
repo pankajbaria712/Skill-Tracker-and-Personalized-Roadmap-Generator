@@ -13,7 +13,6 @@ yarn-error.log*
 
 # Firebase
 firebase-service-account.json
-
 # Logs
 logs
 *.log
