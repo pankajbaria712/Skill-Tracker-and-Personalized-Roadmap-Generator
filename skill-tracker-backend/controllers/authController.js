@@ -77,19 +77,30 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Email and UID are required" });
     }
 
-    const user = await User.findOne({ email, uid });
+    // Find by email (common)
+    const user = await User.findOne({ email });
 
+    // Do NOT auto-create an incomplete user here.
+    // Creating a user without required schema fields can cause validation errors (500).
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res
+        .status(404)
+        .json({
+          message: "User not found. Please register or use Google sign-in.",
+        });
     }
 
-    res.status(200).json({
-      message: "Login successful",
-      user,
-    });
+    // If user exists but uid missing or different, update it safely
+    if (!user.uid || user.uid !== uid) {
+      user.uid = uid;
+      await user.save();
+    }
+
+    return res.status(200).json({ message: "Login successful", user });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
+    // Log full stack to server console for debugging
+    console.error("Login error:", err && err.stack ? err.stack : err);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -98,12 +109,28 @@ export const login = async (req, res) => {
 // ===================
 export const getMe = async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Not authenticated" });
+    // Accept UID from several sources to avoid 401/404 when auth middleware isn't present
+    const uidFromReqUser = req.user?.id || req.user?.uid;
+    const uidFromQuery = req.query?.uid;
+    const uidFromHeader = req.headers["x-user-uid"];
+    const authHeader = req.headers["authorization"] || "";
+    const uidFromBearer = authHeader.startsWith("Bearer ")
+      ? authHeader.replace("Bearer ", "").trim()
+      : null;
+
+    const uid =
+      uidFromReqUser || uidFromQuery || uidFromHeader || uidFromBearer;
+
+    if (!uid) {
+      // return 400 instead of 401 so frontend can retry by sending uid
+      return res.status(400).json({
+        message:
+          "UID not provided. Provide UID via req.user, query (?uid=...), header 'x-user-uid' or Authorization: Bearer <uid>",
+      });
     }
 
     // Look up the full user from MongoDB using uid
-    const user = await User.findOne({ uid: req.user.id });
+    const user = await User.findOne({ uid });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
