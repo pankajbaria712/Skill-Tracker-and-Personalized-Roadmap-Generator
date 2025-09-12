@@ -77,20 +77,32 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Email and UID are required" });
     }
 
-    // Find by email (common)
-    const user = await User.findOne({ email });
+    // Try to find existing user by email
+    let user = await User.findOne({ email });
 
-    // Do NOT auto-create an incomplete user here.
-    // Creating a user without required schema fields can cause validation errors (500).
+    // If no user, create a minimal valid user (safe defaults)
     if (!user) {
+      const localPart = String(email).split("@")[0] || "user";
+      const parts = localPart.split(/[._\-]/).filter(Boolean);
+      const firstName = parts[0]
+        ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
+        : "User";
+      const lastName = parts.slice(1).join(" ") || " ";
+
+      user = new User({
+        firstName,
+        lastName,
+        email,
+        uid,
+      });
+
+      await user.save();
       return res
-        .status(404)
-        .json({
-          message: "User not found. Please register or use Google sign-in.",
-        });
+        .status(201)
+        .json({ message: "User created and logged in", user });
     }
 
-    // If user exists but uid missing or different, update it safely
+    // If user exists but uid missing/different, update it
     if (!user.uid || user.uid !== uid) {
       user.uid = uid;
       await user.save();
@@ -98,7 +110,6 @@ export const login = async (req, res) => {
 
     return res.status(200).json({ message: "Login successful", user });
   } catch (err) {
-    // Log full stack to server console for debugging
     console.error("Login error:", err && err.stack ? err.stack : err);
     return res.status(500).json({ message: "Server error" });
   }
