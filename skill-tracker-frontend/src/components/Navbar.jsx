@@ -1,118 +1,148 @@
-  // src/components/Navbar.jsx
-  import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+// src/components/Navbar.jsx
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
-  import React, { useState, useEffect, useRef } from "react";
-  import { Menu, X, Sun, Moon, Monitor, ChevronDown } from "lucide-react";
-  import { useTheme } from "./ThemeProvider";
-  import { useNavigate, useLocation } from "react-router-dom";
-  import { useAuthState } from "react-firebase-hooks/auth";
-  import { auth } from "../firebase/firebaseClient";
-  import { signOut } from "firebase/auth";
+import React, { useState, useEffect, useRef } from "react";
+import { Menu, X, Sun, Moon, Monitor, ChevronDown } from "lucide-react";
+import { useTheme } from "./ThemeProvider";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "../firebase/firebaseClient";
+import { signOut } from "firebase/auth";
 
-  export default function Navbar() {
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [showNavbar, setShowNavbar] = useState(true);
-    const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
-    const [mobileThemeOpen, setMobileThemeOpen] = useState(false); // 🔹 new state for mobile dropdown
-    const lastScrollY = useRef(window.scrollY);
+export default function Navbar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
+  const [mobileThemeOpen, setMobileThemeOpen] = useState(false); // 🔹 new state for mobile dropdown
+  const lastScrollY = useRef(window.scrollY);
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false); // State for logout popup
 
-    const { theme, setTheme, getActualTheme } = useTheme();
-    const navigate = useNavigate();
-    const location = useLocation();
+  const { theme, setTheme, getActualTheme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    const [user] = useAuthState(auth);
+  const [user] = useAuthState(auth);
 
-    const isDark = getActualTheme() === "dark";
+  const isDark = getActualTheme() === "dark";
 
-    // Close theme dropdown when clicking outside (desktop only)
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (themeDropdownOpen && !event.target.closest(".theme-dropdown")) {
-          setThemeDropdownOpen(false);
-        }
-      };
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [themeDropdownOpen]);
-
-    // Hide/show navbar on scroll
-    useEffect(() => {
-      const handleScroll = () => {
-        const currentScrollY = window.scrollY;
-        if (currentScrollY < 50) {
-          setShowNavbar(true);
-        } else if (currentScrollY > lastScrollY.current + 10) {
-          setShowNavbar(false);
-        } else if (currentScrollY < lastScrollY.current - 10) {
-          setShowNavbar(true);
-        }
-        lastScrollY.current = currentScrollY;
-      };
-
-      window.addEventListener("scroll", handleScroll, { passive: true });
-      return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
-
-    const handleThemeChange = (newTheme) => {
-      setTheme(newTheme);
-      setThemeDropdownOpen(false);
-      setMobileThemeOpen(false); // close mobile dropdown after selecting
-    };
-
-    const getThemeIcon = () => {
-      switch (theme) {
-        case "dark":
-          return <Moon size={18} />;
-        case "light":
-          return <Sun size={18} />;
-        case "system":
-        default:
-          return <Monitor size={18} />;
+  // Close theme dropdown when clicking outside (desktop only)
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (themeDropdownOpen && !event.target.closest(".theme-dropdown")) {
+        setThemeDropdownOpen(false);
       }
     };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [themeDropdownOpen]);
 
-    const getThemeLabel = () => {
-      switch (theme) {
-        case "dark":
-          return "Dark";
-        case "light":
-          return "Light";
-        case "system":
-        default:
-          return "System";
+  // Hide/show navbar on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY < 50) {
+        setShowNavbar(true);
+      } else if (currentScrollY > lastScrollY.current + 10) {
+        setShowNavbar(false);
+      } else if (currentScrollY < lastScrollY.current - 10) {
+        setShowNavbar(true);
       }
+      lastScrollY.current = currentScrollY;
     };
 
-    const handleLogout = async () => {
-      await signOut(auth);
-      navigate("/SignIn");
-    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-    // ✅ Pages we want in the nav
-    const navLinks = [
-      { name: "Home", path: "/" },
-      { name: "Dashboard", path: "/Dashboard" },
-      { name: "Templates", path: "/TemplatesPage" },
-      { name: "Activity", path: "/ActivityPage" },
-      { name: "About", path: "/AboutPage" },
-    ];
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    setThemeDropdownOpen(false);
+    setMobileThemeOpen(false); // close mobile dropdown after selecting
+  };
 
-    return (
+  const getThemeIcon = () => {
+    switch (theme) {
+      case "dark":
+        return <Moon size={18} />;
+      case "light":
+        return <Sun size={18} />;
+      case "system":
+      default:
+        return <Monitor size={18} />;
+    }
+  };
+
+  const getThemeLabel = () => {
+    switch (theme) {
+      case "dark":
+        return "Dark";
+      case "light":
+        return "Light";
+      case "system":
+      default:
+        return "System";
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Firebase sign out
+      setShowLogoutPopup(true); // Show popup
+
+      // Auto-hide popup after 3 seconds
+      setTimeout(() => {
+        setShowLogoutPopup(false);
+      }, 3000);
+
+      navigate("/"); // Redirect to home
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  // ✅ Pages we want in the nav
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { name: "Dashboard", path: "/Dashboard" },
+    { name: "Templates", path: "/TemplatesPage" },
+    { name: "Activity", path: "/ActivityPage" },
+    { name: "About", path: "/AboutPage" },
+  ];
+
+  return (
+    <>
+      {/* Animation keyframes for the logout popup */}
+      <style>
+        {`
+          @keyframes logoutPopupAnim {
+            0% { opacity: 0; transform: translateY(-8px) scale(0.98); }
+            8% { opacity: 1; transform: translateY(0) scale(1); }
+            85% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-8px) scale(0.98); }
+          }
+          .logout-popup-anim {
+            animation: logoutPopupAnim 3s cubic-bezier(.22,.8,.14,1) forwards;
+          }
+        `}
+      </style>
+
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${
-          showNavbar ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+          showNavbar
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-0"
         }`}
       >
         <nav
           className={`mx-auto max-w-7xl flex items-center justify-between px-2 py-4
-          backdrop-blur-xl border-b rounded-b-2xl shadow-lg transition-all duration-300
-          ${
-            theme === "system"
-              ? "bg-gradient-to-r from-[#0f0c29]/90 via-[#302b63]/80 to-[#24243e]/90 border-purple-400/30 shadow-[0_0_25px_rgba(107,63,255,0.4)]"
-              : theme === "dark"
-              ? "bg-black/95 border-gray-800/50 shadow-[0_0_25px_rgba(0,0,0,0.6)]"
-              : "bg-gradient-to-r from-white/90 via-gray-50/80 to-white/90 border-gray-300/30 shadow-[0_0_25px_rgba(156,163,175,0.4)]"
-          }`}
+            backdrop-blur-xl border-b rounded-b-2xl shadow-lg transition-all duration-300
+            ${
+              theme === "system"
+                ? "bg-gradient-to-r from-[#0f0c29]/90 via-[#302b63]/80 to-[#24243e]/90 border-purple-400/30 shadow-[0_0_25px_rgba(107,63,255,0.4)]"
+                : theme === "dark"
+                ? "bg-black/95 border-gray-800/50 shadow-[0_0_25px_rgba(0,0,0,0.6)]"
+                : "bg-gradient-to-r from-white/90 via-gray-50/80 to-white/90 border-gray-300/30 shadow-[0_0_25px_rgba(156,163,175,0.4)]"
+            }`}
         >
           {/* Logo with animation */}
           <button
@@ -276,7 +306,7 @@
               <button
                 onClick={() => setMobileThemeOpen(!mobileThemeOpen)}
                 className="w-full flex items-center justify-between px-4 py-3 rounded-lg font-medium transition-colors duration-200
-                  bg-gray-100 dark:bg-white/10 hover:bg-purple-600 hover:text-white"
+                    bg-gray-100 dark:bg-white/10 hover:bg-purple-600 hover:text-white"
               >
                 <div className="flex items-center gap-2">
                   {getThemeIcon()}
@@ -342,5 +372,17 @@
           </div>
         )}
       </header>
-    );
-  }
+
+      {/* Logout popup (animated minimalistic) */}
+      {showLogoutPopup && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-5 right-5 z-50 logout-popup-anim px-4 py-2 rounded-lg bg-gradient-to-r from-green-400 to-teal-500 text-white font-medium shadow-lg"
+        >
+          👋 You have been logged out successfully!
+        </div>
+      )}
+    </>
+  );
+}
