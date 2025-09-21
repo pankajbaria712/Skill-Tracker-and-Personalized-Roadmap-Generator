@@ -19,7 +19,7 @@ export default function HomePage() {
   // Get background based on theme
   const getBackground = () => {
     if (theme === "system") {
-      return "bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]";
+      return "bg-[#18153f]";
     } else if (theme === "dark") {
       return "bg-black";
     } else {
