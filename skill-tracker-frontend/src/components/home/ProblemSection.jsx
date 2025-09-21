@@ -132,6 +132,21 @@ const ProblemSection = () => {
       className={`px-4 py-20 scroll-mt-20 snap-y snap-mandatory transition-all duration-500 ${themeColors.background}`}
       style={{ minHeight: "100vh" }}
     >
+      {/* Ensure SVG icons inherit the wrapper color and have consistent size */}
+      <style>{`
+        /* icon wrapper helper */
+        .timeline-icon svg {
+          width: 1rem;
+          height: 1rem;
+          display: block;
+          fill: currentColor !important;
+          stroke: currentColor !important;
+        }
+        /* if icons use paths with explicit fill attributes, this forces visibility */
+        .timeline-icon svg [fill] { fill: currentColor !important; }
+        .timeline-icon svg [stroke] { stroke: currentColor !important; }
+      `}</style>
+
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-12">
         {/* Left Side Image and Intro */}
         <div className="intro-card w-full md:w-1/2 space-y-6 snap-start">
@@ -192,7 +207,7 @@ const ProblemSection = () => {
               key={index}
             >
               <div
-                className={`cursor-target timeline-icon-${index} hidden md:flex justify-center items-center w-8 h-8 rounded-full border-2 transition-all duration-500 ${
+                className={`timeline-icon cursor-target timeline-icon-${index} hidden md:flex justify-center items-center w-8 h-8 rounded-full border-2 transition-all duration-500 ${
                   theme === "system"
                     ? "border-[#8e81ff] text-[#8e81ff] bg-[#0b0b1f] hover:bg-[#26245d]"
                     : theme === "dark"
@@ -204,6 +219,7 @@ const ProblemSection = () => {
                 {(() => {
                   const IconComp = problem.icon;
                   return IconComp ? (
+                    // pass through className in case icon supports it, but wrapper .timeline-icon ensures colors
                     <IconComp className="w-4 h-4" aria-hidden="true" />
                   ) : (
                     <span className="text-sm">?</span>
