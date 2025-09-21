@@ -1,31 +1,34 @@
-// unchanged imports...
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTheme } from "../ThemeProvider";
 import { getComponentTheme } from "../../utils/themeUtils";
 
+import { SlidersVertical } from "../icons/SlidersVertical";
+import { ChartNoAxes } from "../icons/ChartNoAxes";
+import { Rocket } from "../icons/Rocket";
+import { Annoyed } from "../icons/Annoyed";
+
 gsap.registerPlugin(ScrollTrigger);
 
-// Temporary emoji icons for theme testing
 const problems = [
   {
-    icon: "⚙️", // SlidersVertical
+    icon: SlidersVertical, // SlidersVertical
     title: "Lacks the Full Picture",
     text: "AI gives quick answers, but no clear learning map. You're unsure what's next or how concepts connect.",
   },
   {
-    icon: "📊", // ChartNoAxes
+    icon: ChartNoAxes, // ChartNoAxes
     title: "Forgets Your Progress",
     text: "AI doesn't remember what you've learned. Each session is a fresh start, wasting your time.",
   },
   {
-    icon: "🚀", // Rocket
+    icon: Rocket, // Rocket
     title: "No Motivation Boost",
     text: "AI offers no milestones or encouragement. It's hard to stay motivated without celebrating wins.",
   },
   {
-    icon: "😤", // Annoyed
+    icon: Annoyed, // Annoyed
     title: "Loses Focus in Details",
     text: "Deep dives with AI can lose the main goal. Learning feels scattered, not part of a clear path.",
   },
@@ -197,7 +200,15 @@ const ProblemSection = () => {
                     : "border-purple-600 text-purple-600 bg-purple-50 hover:bg-purple-100"
                 }`}
               >
-                <span className="text-sm">{problem.icon}</span>
+                {/* Render imported TSX icon component */}
+                {(() => {
+                  const IconComp = problem.icon;
+                  return IconComp ? (
+                    <IconComp className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <span className="text-sm">?</span>
+                  );
+                })()}
               </div>
 
               <div
