@@ -170,6 +170,17 @@ export default function SignUp() {
     }
   };
 
+  // Get background image URL based on theme
+  const getBackgroundImage = () => {
+    if (theme === "system") {
+      return "/bg-system.png";
+    } else if (theme === "dark") {
+      return "/bg-dark.png";
+    } else {
+      return "/bg-light.png";
+    }
+  };
+
   // Get card background based on theme
   const getCardBackground = () => {
     if (theme === "system") {
@@ -204,7 +215,8 @@ export default function SignUp() {
   return (
     // Main container with theme-aware background
     <div
-      className={`relative min-h-screen flex items-center justify-center p-4 ${getBackground()} ${getTextColor()} overflow-hidden transition-all duration-500`}
+      className={`relative min-h-screen flex items-center justify-center p-4 ${getBackground()} ${getTextColor()} overflow-hidden transition-all duration-500 bg-no-repeat bg-cover bg-center`}
+      style={{ backgroundImage: `url(${getBackgroundImage()})` }}
     >
       {/* Background blobs for a dynamic, creative feel */}
       {theme === "system" && (
