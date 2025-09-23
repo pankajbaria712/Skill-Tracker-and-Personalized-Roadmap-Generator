@@ -251,9 +251,19 @@ export default function Navbar() {
             ) : (
               <button
                 onClick={() => navigate("/SignIn")}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition-all duration-200"
+                className="group relative inline-flex h-12 items-center justify-center overflow-hidden rounded-md border-2 font-medium transition-all"
               >
-                Sign In
+                <div
+                  className="inline-flex h-12 items-center justify-center px-6
+    bg-gradient-to-r from-gray-100 to-gray-200 dark:from-[#070e41] dark:to-[#263381]
+    text-black dark:text-white transition duration-500 group-hover:-translate-y-[150%]"
+                >
+                  Sign In
+                </div>
+                <div className="absolute inline-flex h-12 w-full translate-y-[100%] items-center justify-center text-neutral-50 transition duration-500 group-hover:translate-y-0">
+                  <span className="absolute h-full w-full translate-y-full skew-y-12 scale-y-0 bg-purple-600 dark:bg-purple-600 transition duration-500 group-hover:translate-y-0 group-hover:scale-150"></span>
+                  <span className="z-10">Sign In</span>
+                </div>
               </button>
             )}
           </div>
