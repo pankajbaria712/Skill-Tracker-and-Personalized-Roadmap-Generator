@@ -6,6 +6,8 @@
   backface-visibility: hidden;
   will-change: transform, filter;
   contain: layout style paint;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .scroll-stack-inner {
@@ -15,7 +17,7 @@
 
 /* Ensure smooth scrolling for ScrollStack */
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto; /* Let Lenis handle smooth scrolling */
 }
 
 /* Prevent scroll chaining issues */
@@ -28,10 +30,9 @@ html {
   will-change: auto;
 }
 
-/* Hardware acceleration for better performance */
+/* Ensure proper stacking context */
 .scroll-stack-card {
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  isolation: isolate;
 }
 
 /* Reduce motion for users who prefer it */
@@ -47,6 +48,20 @@ html {
   height: 100%;
   width: 100%;
   min-height: 100vh;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }
 
 /* Define the gradient shift animation */

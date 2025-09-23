@@ -4,41 +4,36 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTheme } from "../ThemeProvider";
 import { getComponentTheme } from "../../utils/themeUtils";
-import ScrollStack, {
-  ScrollStackItem,
-} from "../Animations/ScrollStack/ScrollStack";
-import { SlidersVertical } from "../icons/SlidersVertical";
-import { ChartNoAxes } from "../icons/ChartNoAxes";
-import { CheckCheck } from "../icons/CheckCheck";
-import { Rocket } from "../icons/Rocket";
 
+// --- ICON IMPORTS (Temporary emoji replacement for theme testing) ---
+// TODO: Fix icon imports when TypeScript/JavaScript compatibility is resolved
 const features = [
   {
-    icon: <SlidersVertical width={32} height={32} strokeWidth={2} />,
+    icon: "⚙️", // SlidersVertical
     title: "Goal-Oriented Pathways",
     text: "Forget scattered learning. Get a clear, step-by-step roadmap tailored to your specific mastery goals.",
     problemSolved: "Lacks the Full Picture",
   },
   {
-    icon: <ChartNoAxes width={32} height={32} strokeWidth={2} />,
+    icon: "📊", // ChartNoAxes
     title: "Intelligent Progress Tracking",
     text: "Our AI remembers every concept you've mastered, ensuring seamless continuity and personalized next steps.",
     problemSolved: "Forgets Your Progress",
   },
   {
-    icon: <CheckCheck width={32} height={32} strokeWidth={2} />,
+    icon: "✅", // CheckCheck
     title: "Milestone Motivation",
     text: "Celebrate every win! Unlock achievements and visualize your progress, keeping your motivation high.",
     problemSolved: "No Motivation Boost",
   },
   {
-    icon: <Rocket width={32} height={32} strokeWidth={2} />,
+    icon: "🚀", // Rocket
     title: "Focused Deep Dives",
     text: "Explore complex topics with AI that keeps you aligned with your core learning objectives.",
     problemSolved: "Loses Focus in Details",
   },
   {
-    icon: <SlidersVertical width={32} height={32} strokeWidth={2} />,
+    icon: "🤖", // AI icon
     title: "Personalized AI Tutoring",
     text: "Get real-time, context-aware assistance tailored to your learning style, whenever you need it.",
   },
@@ -53,13 +48,27 @@ const FeatureSection = () => {
   // Get theme-specific colors
   const themeColors = getComponentTheme(theme, "section");
 
-  // Debug function to check if ScrollStack is working
-  const handleStackComplete = () => {
-    console.log("🎉 ScrollStack animation completed!");
-  };
-
   useEffect(() => {
-    // Animate the intro section
+    const featureBoxes = gsap.utils.toArray(".feature-box");
+
+    featureBoxes.forEach((box, i) => {
+      gsap.fromTo(
+        box,
+        { autoAlpha: 0, y: 50 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          ease: "power2.out",
+          duration: 0.8,
+          scrollTrigger: {
+            trigger: box,
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+    });
+
     gsap.fromTo(
       ".feature-intro",
       { autoAlpha: 0, y: 30 },
@@ -76,7 +85,6 @@ const FeatureSection = () => {
       }
     );
 
-    // Animate background blobs
     gsap.to(".feature-blob-purple", {
       rotation: 360,
       x: "-=50",
@@ -146,23 +154,11 @@ const FeatureSection = () => {
           </p>
         </div>
 
-        <ScrollStack
-          className="mt-16"
-          itemDistance={120}
-          itemScale={0.06}
-          itemStackDistance={40}
-          stackPosition="30%"
-          scaleEndPosition="15%"
-          baseScale={0.9}
-          rotationAmount={2}
-          blurAmount={2}
-          useWindowScroll={true}
-          onStackComplete={handleStackComplete}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <ScrollStackItem
+            <div
               key={index}
-              itemClassName={`transition-all duration-500 ${
+              className={`feature-box hover:bg-opacity-80 transition-all duration-300 rounded-xl p-8 shadow-lg flex flex-col items-start text-left cursor-target transition-all duration-500 ${
                 theme === "system"
                   ? "bg-[#1a1a36] hover:bg-[#222255]"
                   : theme === "dark"
@@ -170,62 +166,47 @@ const FeatureSection = () => {
                   : "bg-white hover:bg-gray-50 border border-gray-200"
               }`}
             >
-              <div className="flex flex-col items-start text-left h-full">
-                <div
-                  className={`p-4 rounded-full border-2 flex-shrink-0 mb-8 transition-all duration-500 flex items-center justify-center ${
-                    theme === "system"
-                      ? "text-[#8e81ff] border-[#8e81ff] bg-[#0b0b1f]"
-                      : theme === "dark"
-                      ? "text-purple-400 border-purple-400 bg-gray-900"
-                      : "text-purple-600 border-purple-600 bg-purple-50"
-                  }`}
-                  style={{
-                    stroke:
-                      theme === "system"
-                        ? "#8e81ff"
-                        : theme === "dark"
-                        ? "#a855f7"
-                        : "#7c3aed",
-                  }}
-                >
-                  {React.cloneElement(feature.icon, {
-                    stroke:
-                      theme === "system"
-                        ? "#8e81ff"
-                        : theme === "dark"
-                        ? "#a855f7"
-                        : "#7c3aed",
-                  })}
-                </div>
-                <h3
-                  className={`text-4xl font-bold mb-6 transition-colors duration-500 ${themeColors.textPrimary}`}
-                >
-                  {feature.title}
-                </h3>
-                <p
-                  className={`text-xl leading-relaxed mb-6 transition-colors duration-500 ${themeColors.textSecondary}`}
-                >
-                  {feature.text}
-                </p>
-                {feature.problemSolved && (
-                  <div
-                    className={`mt-auto p-4 rounded-lg transition-all duration-500 ${
-                      theme === "system"
-                        ? "bg-[#0b0b1f] text-[#8e81ff] border border-[#8e81ff]"
-                        : theme === "dark"
-                        ? "bg-gray-900 text-purple-400 border border-purple-400"
-                        : "bg-purple-50 text-purple-700 border border-purple-200"
-                    }`}
-                  >
-                    <p className="text-lg font-semibold">
-                      Solves: {feature.problemSolved}
-                    </p>
-                  </div>
+              <div
+                className={`text-4xl p-2 rounded-full border-2 flex-shrink-0 transition-all duration-500 ${
+                  theme === "system"
+                    ? "text-[#8e81ff] border-[#8e81ff] bg-[#0b0b1f]"
+                    : theme === "dark"
+                    ? "text-purple-400 border-purple-400 bg-gray-900"
+                    : "text-purple-600 border-purple-600 bg-purple-50"
+                }`}
+              >
+                {typeof feature.icon === "string" ? (
+                  <span className="text-2xl">{feature.icon}</span>
+                ) : (
+                  feature.icon
                 )}
               </div>
-            </ScrollStackItem>
+              <h3
+                className={`text-2xl font-semibold mb-3 transition-colors duration-500 ${themeColors.textPrimary}`}
+              >
+                {feature.title}
+              </h3>
+              <p
+                className={`text-base leading-relaxed transition-colors duration-500 ${themeColors.textSecondary}`}
+              >
+                {feature.text}
+              </p>
+              {feature.problemSolved && (
+                <p
+                  className={`text-sm mt-2 italic transition-colors duration-500 ${
+                    theme === "system"
+                      ? "text-gray-400"
+                      : theme === "dark"
+                      ? "text-gray-500"
+                      : "text-gray-600"
+                  }`}
+                >
+                  (Solves: {feature.problemSolved})
+                </p>
+              )}
+            </div>
           ))}
-        </ScrollStack>
+        </div>
 
         <div className="text-center mt-20">
           <button
