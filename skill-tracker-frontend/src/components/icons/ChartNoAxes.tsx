@@ -119,4 +119,4 @@ const ChartNoAxes = ({
   );
 };
 
-export { ChartNoAxes };
+export default ChartNoAxes;

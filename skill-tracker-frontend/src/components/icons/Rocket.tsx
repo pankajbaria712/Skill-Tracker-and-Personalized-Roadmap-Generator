@@ -97,4 +97,4 @@ const Rocket = ({
   );
 };
 
-export { Rocket };
+export default Rocket;

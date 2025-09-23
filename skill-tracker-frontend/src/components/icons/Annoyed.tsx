@@ -105,4 +105,4 @@ const Annoyed = ({
   );
 };
 
-export { Annoyed };
+export default Annoyed;

@@ -96,4 +96,4 @@ const CheckCheck = ({
   );
 };
 
-export { CheckCheck };
+export default CheckCheck;

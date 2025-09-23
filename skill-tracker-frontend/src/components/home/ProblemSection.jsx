@@ -4,31 +4,31 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTheme } from "../ThemeProvider";
 import { getComponentTheme } from "../../utils/themeUtils";
 
-import { SlidersVertical } from "../icons/SlidersVertical";
-import { ChartNoAxes } from "../icons/ChartNoAxes";
-import { Rocket } from "../icons/Rocket";
-import { Annoyed } from "../icons/Annoyed";
+import SlidersVertical from "../icons/SlidersVertical";
+import ChartNoAxes from "../icons/ChartNoAxes";
+import Rocket from "../icons/Rocket";
+import Annoyed from "../icons/Annoyed";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const problems = [
   {
-    icon: SlidersVertical, // SlidersVertical
+    icon: SlidersVertical,
     title: "Lacks the Full Picture",
     text: "AI gives quick answers, but no clear learning map. You're unsure what's next or how concepts connect.",
   },
   {
-    icon: ChartNoAxes, // ChartNoAxes
+    icon: ChartNoAxes,
     title: "Forgets Your Progress",
     text: "AI doesn't remember what you've learned. Each session is a fresh start, wasting your time.",
   },
   {
-    icon: Rocket, // Rocket
+    icon: Rocket,
     title: "No Motivation Boost",
     text: "AI offers no milestones or encouragement. It's hard to stay motivated without celebrating wins.",
   },
   {
-    icon: Annoyed, // Annoyed
+    icon: Annoyed,
     title: "Loses Focus in Details",
     text: "Deep dives with AI can lose the main goal. Learning feels scattered, not part of a clear path.",
   },

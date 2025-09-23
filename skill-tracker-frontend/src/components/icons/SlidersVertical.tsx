@@ -147,4 +147,4 @@ const SlidersVertical = ({
   );
 };
 
-export { SlidersVertical };
+export default SlidersVertical;
