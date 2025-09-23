@@ -53,7 +53,7 @@ const Rocket = ({
   width = 17,
   height = 17,
   strokeWidth = 2,
-  stroke = "#ffffff",
+  stroke = "#00f8fd",
   ...props
 }: RocketProps) => {
   const controls = useAnimation();

@@ -25,7 +25,7 @@ const ChartNoAxes = ({
   width = 20,
   height = 20,
   strokeWidth = 2,
-  stroke = "#ffffff",
+  stroke = "#00f8fd",
   ...props
 }: ChartNoAxesProps) => {
   const controls = useAnimation();

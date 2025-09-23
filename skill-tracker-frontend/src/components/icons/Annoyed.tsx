@@ -52,7 +52,7 @@ const Annoyed = ({
   width = 32,
   height = 32,
   strokeWidth = 2,
-  stroke = "#ffffff",
+  stroke = "#00f8fd",
   ...props
 }: AnnoyedProps) => {
   const controls = useAnimation();

@@ -30,7 +30,7 @@ const CheckCheck = ({
   width = 28,
   height = 28,
   strokeWidth = 2,
-  stroke = "#ffffff",
+  stroke = "#00f8fd",
   ...props
 }: CheckCheckProps) => {
   const controls = useAnimation();

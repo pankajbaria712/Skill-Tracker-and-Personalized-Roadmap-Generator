@@ -31,7 +31,7 @@ const SlidersVertical = ({
   width = 20,
   height = 20,
   strokeWidth = 2,
-  stroke = "#ffffff",
+  stroke = "#00f8fd",
   ...props
 }: SlidersVerticalProps) => {
   const controls = useAnimation();
