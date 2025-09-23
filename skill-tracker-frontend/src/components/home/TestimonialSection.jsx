@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTheme } from "../ThemeProvider";
+import ElectricBorder from "../Animations/ElectricBorder/ElectricBorder";
 import { getComponentTheme } from "../../utils/themeUtils";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -37,24 +38,28 @@ const testimonials = [
       "Roadmap Tracker completely changed how I approach learning new skills. The personalized paths and progress tracking kept me motivated and on track. I finally feel like I'm making real progress.",
     name: "Alex Johnson",
     title: "Software Engineer",
+    image: "/persons/Alex.jpg",
   },
   {
     quote:
       "As a product manager, I need to learn quickly and efficiently. This tool's focused deep-dives saved me countless hours of sifting through scattered information. Highly recommended!",
     name: "Maria Rodriguez",
     title: "Product Manager",
+    image: "/persons/Maria.jpg",
   },
   {
     quote:
       "I've tried numerous learning platforms, but none remembered my progress like Roadmap Tracker. It's like having a personal AI tutor that knows exactly what I need next.",
     name: "Ben Carter",
     title: "Freelance Designer",
+    image: "/persons/Ben.webp",
   },
   {
     quote:
-      "The milestone system is genius! It turned the grind of learning into a rewarding game. I'm actually excited to learn again.",
+      "The milestone system is genius! It turned the grind of learning into a rewarding game. I'm actually excited to learn again and Generating roadmap is great for beginners!.",
     name: "Sarah Chen",
     title: "Data Analyst",
+    image: "/persons/Sarah.jpg",
   },
 ];
 
@@ -135,45 +140,62 @@ const TestimonialSection = () => {
         {/* Testimonial Grid */}
         <div className="testimonial-cards-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className={`testimonial-card transition-all duration-300 rounded-xl p-6 shadow-lg flex flex-col cursor-target h-full transition-all duration-500 ${
-                theme === "system"
-                  ? "bg-[#1a1a36] hover:bg-[#222255]"
-                  : theme === "dark"
-                  ? "bg-gray-800 hover:bg-gray-700"
-                  : "bg-white hover:bg-gray-50 border border-gray-200"
-              }`}
+            <ElectricBorder
+              color="#7df9ff"
+              speed={1}
+              chaos={0.5}
+              thickness={2}
+              style={{ borderRadius: 16 }}
             >
-              <div className="flex mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <StarIcon key={i} />
-                ))}
-              </div>
-              <p
-                className={`text-base italic leading-relaxed mb-4 flex-grow transition-colors duration-500 ${themeColors.textSecondary}`}
+              <div
+                className={`testimonial-card transition-all duration-300 p-6 shadow-lg flex flex-col cursor-target h-full rounded-2xl overflow-hidden ${
+                  theme === "system"
+                    ? "bg-[#1a1a36] hover:bg-[#222255]"
+                    : theme === "dark"
+                    ? "bg-gray-800 hover:bg-gray-700"
+                    : "bg-white hover:bg-gray-50"
+                }`}
               >
-                "{testimonial.quote}"
-              </p>
-              <div className="mt-auto">
+                <div className="flex mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <StarIcon key={i} />
+                  ))}
+                </div>
                 <p
-                  className={`font-semibold transition-colors duration-500 ${themeColors.textPrimary}`}
+                  className={`text-base italic leading-relaxed mb-4 flex-grow transition-colors duration-500 ${themeColors.textSecondary}`}
                 >
-                  {testimonial.name}
+                  "{testimonial.quote}"
                 </p>
-                <p
-                  className={`text-sm transition-colors duration-500 ${
-                    theme === "system"
-                      ? "text-gray-400"
-                      : theme === "dark"
-                      ? "text-gray-500"
-                      : "text-gray-600"
-                  }`}
-                >
-                  {testimonial.title}
-                </p>
+                <div className="mt-auto flex items-center gap-3">
+                  <img
+                    src={testimonial.image}
+                    alt={`${testimonial.name} photo`}
+                    width={40}
+                    height={40}
+                    loading="lazy"
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-white/10"
+                  />
+                  <div>
+                    <p
+                      className={`font-semibold transition-colors duration-500 ${themeColors.textPrimary}`}
+                    >
+                      {testimonial.name}
+                    </p>
+                    <p
+                      className={`text-sm transition-colors duration-500 ${
+                        theme === "system"
+                          ? "text-gray-400"
+                          : theme === "dark"
+                          ? "text-gray-500"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {testimonial.title}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
+            </ElectricBorder>
           ))}
         </div>
 
