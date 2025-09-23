@@ -1,5 +1,47 @@
 @import "tailwindcss";
 
+/* ScrollStack specific styles */
+.scroll-stack-card {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, filter;
+  contain: layout style paint;
+}
+
+.scroll-stack-inner {
+  perspective: 1000px;
+  contain: layout style;
+}
+
+/* Ensure smooth scrolling for ScrollStack */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent scroll chaining issues */
+.scroll-stack-container {
+  overscroll-behavior: contain;
+}
+
+/* Optimize animations for better performance */
+.scroll-stack-card * {
+  will-change: auto;
+}
+
+/* Hardware acceleration for better performance */
+.scroll-stack-card {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-stack-card {
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
 /* Ensure proper viewport handling */
 #root {
   height: 100%;
