@@ -9,10 +9,11 @@ import TestimonialSection from "../components/home/TestimonialSection";
 import CallToActionSection from "../components/home/CallToActionSection";
 import { useTheme } from "../components/ThemeProvider";
 import TargetCursor from "../components/Animations/TargetCursor/TargetCursor";
+import ScrollVelocity from "../components/Animations/ScrollVelocity/ScrollVelocity";
 
 export default function HomePage() {
   const { theme, getActualTheme } = useTheme();
-
+  const velocity = 100;
   // Get the actual theme that should be applied
   const isDark = getActualTheme() === "dark";
 
@@ -48,6 +49,11 @@ export default function HomePage() {
       {/* Main Content Container */}
       <div className="relative" id="scroll-container">
         <HeroSection />
+        <ScrollVelocity
+          texts={["React Bits", "Scroll Down"]}
+          velocity={velocity}
+          className="custom-scroll-text"
+        />
         <ProblemSection />
         <FeaturesSection />
         <TestimonialSection />
