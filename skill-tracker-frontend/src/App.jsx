@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react"; // Added useState
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
@@ -10,8 +10,11 @@ import AboutPage from "./pages/AboutPage";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute"; // NEW
 import Lenis from "lenis";
+import Preloader from "./components/Preloader"; // <-- Added Preloader import
 
 function App() {
+  const [loading, setLoading] = useState(true); // Added loading state
+
   useEffect(() => {
     // Initialize global smooth scrolling if not already initialized
     if (!window.lenis) {
@@ -36,14 +39,22 @@ function App() {
       window.lenis = lenis;
     }
 
+    // Simulate loading duration for preloader
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000); // 2 seconds preloader
+
     return () => {
       // Cleanup on unmount
       if (window.lenis) {
         window.lenis.destroy();
         window.lenis = null;
       }
+      clearTimeout(timer);
     };
   }, []);
+
+  if (loading) return <Preloader />; // Show preloader while loading
 
   return (
     <ThemeProvider>
