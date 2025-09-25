@@ -8,6 +8,7 @@ import VariableProximity from "../TextAnimations/VariableProximity/VariableProxi
 import RotatingText from "../TextAnimations/RotatingText/RotatingText";
 import { useTheme } from "../ThemeProvider";
 import { getComponentTheme } from "../../utils/themeUtils";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 // Refined lighting for a more modern look
 function HeroLighting() {
@@ -35,6 +36,7 @@ function Robot3D({ mousePosition }) {
   const gltf = useLoader(GLTFLoader, "/Graph Arrow 01.glb");
   const meshRef = useRef();
   const [hovered, setHovered] = useState(false);
+  // Removed navigate from here as it's not used in Robot3D directly for navigation
 
   const clonedScene = useMemo(() => {
     const scene = gltf.scene.clone(true);
@@ -115,6 +117,7 @@ export default function HeroSection() {
   const containerRef = useRef(null);
   const headline = "Unlock Your";
   const { theme } = useTheme();
+  const navigate = useNavigate(); // Initialize useNavigate here
 
   // Get theme-specific colors
   const themeColors = getComponentTheme(theme, "hero");
@@ -208,6 +211,7 @@ export default function HeroSection() {
             whileTap={{ scale: 0.95 }}
             className={`flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-white shadow-lg hover:from-indigo-700 hover:to-purple-800 transition-all duration-300 text-base md:text-lg transform hover:-translate-y-1 w-full sm:w-auto lg:px-8 lg:py-4 lg:text-xl ${themeColors.buttonPrimary}`}
             aria-label="Start Learning Now"
+            onClick={() => navigate("/dashboard")} // Corrected onClick
           >
             <span className="text-xl">🚀</span>
             Start Learning Now
@@ -219,6 +223,7 @@ export default function HeroSection() {
             whileTap={{ scale: 0.95 }}
             className={`flex items-center justify-center gap-2 px-6 py-3 rounded-full font-semibold transition-all duration-300 text-base md:text-lg w-full sm:w-auto lg:px-8 lg:py-4 lg:text-xl ${themeColors.buttonSecondary}`}
             aria-label="Browse Templates"
+            onClick={() => navigate("/TemplatesPage")} // Corrected onClick
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

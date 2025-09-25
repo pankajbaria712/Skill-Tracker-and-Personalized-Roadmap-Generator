@@ -47,7 +47,7 @@ const SkillTrackerProgressPreloader = ({ onLoaded }) => {
           cx="60"
           cy="60"
           r={radius}
-          stroke="rgb(137,0,255)"
+          stroke="rgb(40,18,67)"
           strokeWidth="8"
           fill="none"
           strokeDasharray={circumference}
@@ -62,7 +62,7 @@ const SkillTrackerProgressPreloader = ({ onLoaded }) => {
           dy="0.3em"
           fontSize="20"
           fontWeight="bold"
-          fill="rgb(137,0,255)"
+          fill="rgb(40,18,67)"
         >
           {progress}%
         </text>
@@ -76,14 +76,14 @@ const SkillTrackerProgressPreloader = ({ onLoaded }) => {
             className={`w-4 h-4 rounded-full shadow-lg animate-bounce-delay${
               i + 1
             }`}
-            style={{ backgroundColor: "rgb(137,0,255)" }}
+            style={{ backgroundColor: "rgb(40,18,67)" }}
           ></span>
         ))}
       </div>
       {/* Loading Text */}
       <p
         className="font-semibold animate-pulse"
-        style={{ color: "rgb(137,0,255)" }}
+        style={{ color: "rgb(40,18,67)" }}
       >
         Loading Your Skills...
       </p>

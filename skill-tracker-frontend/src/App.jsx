@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"; // Added useState
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
@@ -8,12 +8,12 @@ import TemplatesPage from "./pages/TemplatesPage";
 import ActivityPage from "./pages/ActivityPage";
 import AboutPage from "./pages/AboutPage";
 import { ThemeProvider } from "./components/ThemeProvider";
-import ProtectedRoute from "./components/ProtectedRoute"; // NEW
+import ProtectedRoute from "./components/ProtectedRoute";
 import Lenis from "lenis";
-import Preloader from "./components/Preloader"; // <-- Added Preloader import
+import Preloader from "./components/Preloader";
 
 function App() {
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Initialize global smooth scrolling if not already initialized
@@ -54,7 +54,7 @@ function App() {
     };
   }, []);
 
-  if (loading) return <Preloader />; // Show preloader while loading
+  if (loading) return <Preloader />;
 
   return (
     <ThemeProvider>
