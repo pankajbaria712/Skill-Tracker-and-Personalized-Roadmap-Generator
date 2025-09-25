@@ -15,8 +15,9 @@ const verifyFirebaseToken = async (req, res, next) => {
     const idToken = match[1];
     const decodedToken = await admin.auth().verifyIdToken(idToken);
 
+    // ✅ use uid instead of id for consistency
     req.user = {
-      id: decodedToken.uid,
+      uid: decodedToken.uid,
       email: decodedToken.email,
     };
 

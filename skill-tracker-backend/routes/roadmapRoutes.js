@@ -54,7 +54,7 @@ Skill requested: ${title}
 
     // 💾 Save roadmap to MongoDB
     const roadmap = new Roadmap({
-      user: req.user.id,
+      user: req.user.uid, // ✅ Firebase UID
       title,
       content: parsed,
     });
@@ -70,7 +70,7 @@ Skill requested: ${title}
 // 📌 Get all roadmaps for logged-in user
 router.get("/", verifyFirebaseToken, async (req, res) => {
   try {
-    const roadmaps = await Roadmap.find({ user: req.user.id }).sort({
+    const roadmaps = await Roadmap.find({ user: req.user.uid }).sort({
       createdAt: -1,
     });
     res.json(roadmaps);
@@ -82,7 +82,7 @@ router.get("/", verifyFirebaseToken, async (req, res) => {
 // 📌 Delete roadmap
 router.delete("/:id", verifyFirebaseToken, async (req, res) => {
   try {
-    await Roadmap.findOneAndDelete({ _id: req.params.id, user: req.user.id });
+    await Roadmap.findOneAndDelete({ _id: req.params.id, user: req.user.uid });
     res.json({ message: "Roadmap deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });

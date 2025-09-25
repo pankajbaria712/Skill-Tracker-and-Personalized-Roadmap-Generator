@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const RoadmapSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // link to logged-in user
+    user: { type: String, required: true }, // ✅ Firebase UID as string
     title: { type: String, required: true },
     content: { type: Object, required: true }, // AI generated structured content
   },

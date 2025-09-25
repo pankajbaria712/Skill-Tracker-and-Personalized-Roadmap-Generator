@@ -4,16 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Sparkles, Grid3X3, Trash2 } from "lucide-react";
 import ProgressRing from "./ProgressRing";
 
-/**
- * RoadmapSection
- * Props:
- * - roadmaps: array
- * - removeRoadmap(id)
- * - onOpenRoadmap(roadmap) -> open detail
- * - onOpenResourceModal(title) -> open resources modal
- * - onOpenAIModal() -> open AI modal
- * - cardVariants, buttonVariants (optional for animation)
- */
 export default function RoadmapSection({
   roadmaps = [],
   removeRoadmap,
@@ -100,9 +90,9 @@ export default function RoadmapSection({
 
         {/* Dynamic Roadmaps */}
         <AnimatePresence>
-          {roadmaps.map((rm, i) => (
+          {roadmaps.map((rm) => (
             <motion.article
-              key={rm.id}
+              key={rm._id || rm.id} // ✅ use _id from MongoDB
               variants={cardVariants}
               initial="hidden"
               animate="visible"
@@ -113,7 +103,7 @@ export default function RoadmapSection({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  removeRoadmap?.(rm.id);
+                  removeRoadmap?.(rm._id || rm.id); // ✅ use _id
                 }}
                 className="absolute top-3 right-3 p-1 rounded-full text-gray-400 hover:bg-gray-700 transition"
                 aria-label={`Remove ${rm.title}`}
@@ -125,15 +115,21 @@ export default function RoadmapSection({
                 <h3 className="text-lg sm:text-xl font-bold text-white leading-tight">
                   {rm.title}
                 </h3>
-                <p className="text-gray-400 mt-2 text-sm">{rm.description}</p>
+                <p className="text-gray-400 mt-2 text-sm">
+                  {rm.description || "No description"}
+                </p>
               </div>
 
               <div className="mt-4 flex items-center justify-between">
                 <div className="text-xs sm:text-sm text-gray-400">
-                  <div>{rm.date}</div>
-                  <div>{rm.goals} goals</div>
+                  <div>
+                    {rm.date
+                      ? rm.date
+                      : new Date(rm.createdAt).toLocaleDateString()}
+                  </div>
+                  <div>{rm.goals || 0} goals</div>
                 </div>
-                <ProgressRing progress={rm.progress} />
+                <ProgressRing progress={rm.progress || 0} />
               </div>
             </motion.article>
           ))}
@@ -142,3 +138,4 @@ export default function RoadmapSection({
     </motion.section>
   );
 }
+  

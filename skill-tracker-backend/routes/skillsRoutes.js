@@ -1,14 +1,14 @@
-// 6️⃣ routes/skillsRoutes.js
+// routes/skillsRoutes.js
 import express from "express";
 const router = express.Router();
 import Skill from "../models/Skill.js";
 import verifyFirebaseToken from "../middleware/authMiddleware.js";
 
-// Add Skill
+// 📌 Add Skill
 router.post("/", verifyFirebaseToken, async (req, res) => {
   const { name, proficiency } = req.body;
   try {
-    const skill = new Skill({ user: req.user.id, name, proficiency });
+    const skill = new Skill({ user: req.user.uid, name, proficiency }); // ✅ use uid
     await skill.save();
     res.json(skill);
   } catch (err) {
@@ -16,22 +16,22 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
   }
 });
 
-// Get All Skills for logged-in user
+// 📌 Get All Skills for logged-in user
 router.get("/", verifyFirebaseToken, async (req, res) => {
   try {
-    const skills = await Skill.find({ user: req.user.id });
+    const skills = await Skill.find({ user: req.user.uid }); // ✅ use uid
     res.json(skills);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Update Skill
+// 📌 Update Skill
 router.put("/:id", verifyFirebaseToken, async (req, res) => {
   const { name, proficiency } = req.body;
   try {
     const skill = await Skill.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id },
+      { _id: req.params.id, user: req.user.uid }, // ✅ use uid
       { name, proficiency },
       { new: true }
     );
@@ -41,10 +41,10 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
   }
 });
 
-// Delete Skill
+// 📌 Delete Skill
 router.delete("/:id", verifyFirebaseToken, async (req, res) => {
   try {
-    await Skill.findOneAndDelete({ _id: req.params.id, user: req.user.id });
+    await Skill.findOneAndDelete({ _id: req.params.id, user: req.user.uid }); // ✅ use uid
     res.json({ message: "Skill deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -1,9 +1,9 @@
-// 3️⃣ models/Skill.js
+// models/Skill.js
 import mongoose from "mongoose";
 
 const SkillSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: String, required: true }, // ✅ Firebase UID as string
     name: { type: String, required: true },
     proficiency: { type: String, required: true },
   },
