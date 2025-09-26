@@ -6,89 +6,56 @@ import verifyFirebaseToken from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Helper: try multiple common paths to extract text from AI response
-function extractTextFromAIResponse(data, rawBody) {
-  // Try several likely locations
-  const tryFns = [
-    (d) => d?.candidates?.[0]?.content?.parts?.[0]?.text,
-    (d) => d?.candidates?.[0]?.content?.text,
-    (d) => d?.candidates?.[0]?.message?.content?.[0]?.text,
-    (d) => d?.outputText,
-    (d) => d?.outputs?.[0]?.content?.[0]?.text,
-    (d) => d?.responses?.[0]?.output?.[0]?.content?.text,
-    (d) => d?.generated_text,
-  ];
-
-  for (const fn of tryFns) {
-    try {
-      const t = fn(data);
-      if (t && typeof t === "string" && t.trim().length > 0) return t;
-    } catch (e) {
-      // ignore
-    }
-  }
-
-  // If data itself is a string (raw body), return that
-  if (typeof data === "string" && data.trim().length > 0) return data;
-
-  // fallback to rawBody if available
-  if (typeof rawBody === "string" && rawBody.trim().length > 0) return rawBody;
-
-  // nothing found
-  return "";
-}
-
-// Helper: extract JSON substring { ... } and parse
-function parseJsonFromText(text) {
+// ✅ Clean JSON text from Gemini
+function extractJson(text) {
+  if (!text) return { rawText: "" };
+  const cleaned = text.replace(/```json|```/g, "").trim();
   try {
-    const jsonStart = text.indexOf("{");
-    const jsonEnd = text.lastIndexOf("}");
-    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-      const jsonString = text.substring(jsonStart, jsonEnd + 1);
-      return JSON.parse(jsonString);
-    }
-    // If exact JSON not found, try to parse whole text (in case it's pure JSON)
-    return JSON.parse(text);
+    return JSON.parse(cleaned);
   } catch (err) {
-    // parsing failed
-    return { rawText: text };
+    console.error("JSON parse failed:", err.message);
+    return { rawText: cleaned };
   }
 }
 
-// 📌 Generate roadmap with AI + save to DB
+function calculateProgressFromSteps(steps = []) {
+  if (!Array.isArray(steps) || steps.length === 0) return 0;
+  const completed = steps.filter((s) => s.completed).length;
+  return Math.round((completed / steps.length) * 100);
+}
+
+// 📌 Generate roadmap with AI
 router.post("/generate", verifyFirebaseToken, async (req, res) => {
   try {
     const { title, proficiency } = req.body || {};
 
-    // Prompt: strict JSON required
     const prompt = `
 You are an expert roadmap generator dedicated to helping users learn new skills.  
 Return ONLY valid JSON (no explanations, no markdown).  
 
-Format must be:
+Format:
 {
   "introduction": "short intro",
   "steps": [
     {
       "title": "Step title",
-      "description": "Explain what to do in this step",
+      "description": "Explain",
       "resources": [
-        { "type": "course", "title": "Course Name", "url": "https://..." },
-        { "type": "article", "title": "Article Name", "url": "https://..." }
+        { "type": "course", "title": "Course Name", "url": "https://..." }
       ]
     }
   ],
-  "projects": ["Project idea 1", "Project idea 2"],
-  "tips": ["Tip 1", "Tip 2"]
+  "projects": ["Project idea 1"],
+  "tips": ["Tip 1"]
 }
 
 Skill: ${title}
 Proficiency: ${proficiency || "not specified"}
 `;
 
-    // Call Gemini API (server-side)
+    // 🌐 Call Gemini
     const aiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -98,70 +65,50 @@ Proficiency: ${proficiency || "not specified"}
       }
     );
 
-    // Always capture raw body for debugging
-    const rawBody = await aiRes.text();
-
     if (!aiRes.ok) {
-      console.error("Gemini API error status:", aiRes.status, "body:", rawBody);
-      return res.status(502).json({
-        message: "AI service error",
-        details: rawBody ? rawBody.slice(0, 1000) : "empty response",
-      });
+      const errText = await aiRes.text();
+      console.error("Gemini API error:", aiRes.status, errText);
+      return res
+        .status(502)
+        .json({ message: "Gemini API error", details: errText });
     }
 
-    // Try to parse JSON body; if not JSON, fallback to raw string
-    let parsedBody;
-    try {
-      parsedBody = JSON.parse(rawBody);
-    } catch {
-      parsedBody = rawBody;
-    }
+    const data = await aiRes.json();
 
-    console.log(
-      "AI raw response:",
-      typeof rawBody === "string" ? rawBody.slice(0, 2000) : rawBody
-    );
+    // ✅ extract text only
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const parsed = extractJson(text);
 
-    // Extract actual text (various possible shapes)
-    const text = extractTextFromAIResponse(parsedBody, rawBody);
+    // ensure steps array & add completed:false
+    parsed.steps = Array.isArray(parsed.steps)
+      ? parsed.steps.map((s) => ({
+          title: s.title || "Untitled step",
+          description: s.description || "",
+          resources: Array.isArray(s.resources) ? s.resources : [],
+          completed: false,
+        }))
+      : [];
 
-    if (!text || text.trim().length === 0) {
-      console.warn("AI returned empty text. Full body:", rawBody);
-      // Save a roadmap with rawBody so dev can inspect
-      const roadmapFallback = new Roadmap({
-        user: req.user.uid,
-        title: title || "Untitled",
-        content: { rawText: rawBody || "" },
-      });
-      await roadmapFallback.save();
-      return res.status(200).json({
-        message:
-          "Saved fallback roadmap (AI returned empty). Check server logs for AI raw response.",
-        roadmap: roadmapFallback,
-      });
-    }
+    const progress = calculateProgressFromSteps(parsed.steps);
 
-    // Parse JSON out of the extracted text
-    const parsed = parseJsonFromText(text);
-
-    // Save roadmap
     const roadmap = new Roadmap({
       user: req.user.uid,
-      title: title || "Untitled",
+      title: title || parsed.title || "Untitled",
       content: parsed,
+      progress,
     });
 
     await roadmap.save();
-    return res.json(roadmap);
+    res.json(roadmap);
   } catch (err) {
     console.error("Error generating roadmap:", err);
-    return res
+    res
       .status(500)
-      .json({ message: "Failed to generate roadmap", error: err?.message });
+      .json({ message: "Failed to generate roadmap", error: err.message });
   }
 });
 
-// Get all roadmaps
+// 📌 Get all roadmaps
 router.get("/", verifyFirebaseToken, async (req, res) => {
   try {
     const roadmaps = await Roadmap.find({ user: req.user.uid }).sort({
@@ -174,7 +121,37 @@ router.get("/", verifyFirebaseToken, async (req, res) => {
   }
 });
 
-// Delete roadmap
+// 📌 Toggle step completed
+router.patch(
+  "/:id/steps/:index/toggle",
+  verifyFirebaseToken,
+  async (req, res) => {
+    try {
+      const { id, index } = req.params;
+      const roadmap = await Roadmap.findOne({ _id: id, user: req.user.uid });
+      if (!roadmap)
+        return res.status(404).json({ message: "Roadmap not found" });
+
+      const steps = roadmap.content?.steps || [];
+      const idx = parseInt(index, 10);
+      if (isNaN(idx) || idx < 0 || idx >= steps.length) {
+        return res.status(400).json({ message: "Invalid step index" });
+      }
+
+      steps[idx].completed = !steps[idx].completed;
+      roadmap.content.steps = steps;
+      roadmap.progress = calculateProgressFromSteps(steps);
+
+      await roadmap.save();
+      res.json(roadmap);
+    } catch (err) {
+      console.error("Error toggling step:", err);
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
+
+// 📌 Delete roadmap
 router.delete("/:id", verifyFirebaseToken, async (req, res) => {
   try {
     await Roadmap.findOneAndDelete({ _id: req.params.id, user: req.user.uid });

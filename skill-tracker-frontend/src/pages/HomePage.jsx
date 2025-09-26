@@ -50,7 +50,7 @@ export default function HomePage() {
       <div className="relative" id="scroll-container">
         <HeroSection />
         <ScrollVelocity
-          texts={["Track Your Skills", "Build Your Roadmap"]}
+          texts={["Build Your Roadmap", "Track Your Skills"]}
           velocity={velocity}
           className="custom-scroll-text"
         />
