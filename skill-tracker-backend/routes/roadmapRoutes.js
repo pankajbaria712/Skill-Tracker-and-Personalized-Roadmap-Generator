@@ -1,52 +1,56 @@
 // routes/roadmapRoutes.js
 import express from "express";
 import fetch from "node-fetch";
-import Roadmap from "../models/Roadmap.js";
+import Roadmap from "../models/roadmap.js";
 import verifyFirebaseToken from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ✅ Clean JSON text from Gemini
-function extractJson(text) {
-  if (!text) return { rawText: "" };
-  const cleaned = text.replace(/```json|```/g, "").trim();
+// Helper: extract JSON substring { ... } and parse
+function parseJsonFromText(text) {
   try {
-    return JSON.parse(cleaned);
+    const jsonStart = text.indexOf("{");
+    const jsonEnd = text.lastIndexOf("}");
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      const jsonString = text.substring(jsonStart, jsonEnd + 1);
+      return JSON.parse(jsonString);
+    }
+    return JSON.parse(text);
   } catch (err) {
-    console.error("JSON parse failed:", err.message);
-    return { rawText: cleaned };
+    return { rawText: text };
   }
 }
 
 function calculateProgressFromSteps(steps = []) {
   if (!Array.isArray(steps) || steps.length === 0) return 0;
-  const completed = steps.filter((s) => s.completed).length;
-  return Math.round((completed / steps.length) * 100);
+  const completedCount = steps.filter((s) => s.completed).length;
+  return Math.round((completedCount / steps.length) * 100);
 }
 
-// 📌 Generate roadmap with AI
+// 📌 Generate roadmap with AI + save to DB
 router.post("/generate", verifyFirebaseToken, async (req, res) => {
   try {
     const { title, proficiency } = req.body || {};
 
     const prompt = `
-You are an expert roadmap generator dedicated to helping users learn new skills.  
-Return ONLY valid JSON (no explanations, no markdown).  
+You are an expert roadmap generator dedicated to helping users learn new skills.
+Return ONLY valid JSON (no explanations, no markdown).
 
-Format:
+Format must be:
 {
   "introduction": "short intro",
   "steps": [
     {
       "title": "Step title",
-      "description": "Explain",
+      "description": "Explain what to do in this step",
       "resources": [
-        { "type": "course", "title": "Course Name", "url": "https://..." }
+        { "type": "course", "title": "Course Name", "url": "https://..." },
+        { "type": "article", "title": "Article Name", "url": "https://..." }
       ]
     }
   ],
-  "projects": ["Project idea 1"],
-  "tips": ["Tip 1"]
+  "projects": ["Project idea 1", "Project idea 2"],
+  "tips": ["Tip 1", "Tip 2"]
 }
 
 Skill: ${title}
@@ -65,36 +69,39 @@ Proficiency: ${proficiency || "not specified"}
       }
     );
 
+    const data = await aiRes.json();
     if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      console.error("Gemini API error:", aiRes.status, errText);
+      console.error("Gemini API error:", data);
       return res
         .status(502)
-        .json({ message: "Gemini API error", details: errText });
+        .json({ message: "AI service error", details: data });
     }
 
-    const data = await aiRes.json();
-
-    // ✅ extract text only
+    // ✅ Extract actual text from Gemini response
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const parsed = extractJson(text);
+    let parsedContent = parseJsonFromText(text);
 
-    // ensure steps array & add completed:false
-    parsed.steps = Array.isArray(parsed.steps)
-      ? parsed.steps.map((s) => ({
-          title: s.title || "Untitled step",
-          description: s.description || "",
-          resources: Array.isArray(s.resources) ? s.resources : [],
-          completed: false,
-        }))
-      : [];
+    // Ensure steps exist and mark with completed:false
+    if (!parsedContent.steps || !Array.isArray(parsedContent.steps)) {
+      parsedContent.steps = [];
+    }
+    parsedContent.steps = parsedContent.steps.map((s) => ({
+      title: s.title || s.name || "Untitled step",
+      description: s.description || "",
+      resources: Array.isArray(s.resources) ? s.resources : [],
+      completed: false,
+    }));
 
-    const progress = calculateProgressFromSteps(parsed.steps);
+    if (!parsedContent.projects) parsedContent.projects = [];
+    if (!parsedContent.tips) parsedContent.tips = [];
 
+    const progress = calculateProgressFromSteps(parsedContent.steps);
+
+    // Save roadmap
     const roadmap = new Roadmap({
       user: req.user.uid,
-      title: title || parsed.title || "Untitled",
-      content: parsed,
+      title: title || parsedContent.title || "Untitled",
+      content: parsedContent,
       progress,
     });
 
@@ -104,7 +111,7 @@ Proficiency: ${proficiency || "not specified"}
     console.error("Error generating roadmap:", err);
     res
       .status(500)
-      .json({ message: "Failed to generate roadmap", error: err.message });
+      .json({ message: "Failed to generate roadmap", error: err?.message });
   }
 });
 
@@ -132,13 +139,14 @@ router.patch(
       if (!roadmap)
         return res.status(404).json({ message: "Roadmap not found" });
 
-      const steps = roadmap.content?.steps || [];
+      const steps = roadmap.content.steps || [];
       const idx = parseInt(index, 10);
       if (isNaN(idx) || idx < 0 || idx >= steps.length) {
         return res.status(400).json({ message: "Invalid step index" });
       }
 
       steps[idx].completed = !steps[idx].completed;
+
       roadmap.content.steps = steps;
       roadmap.progress = calculateProgressFromSteps(steps);
 

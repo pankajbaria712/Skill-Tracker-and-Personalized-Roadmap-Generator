@@ -7,19 +7,18 @@ import {
   ArrowLeft,
   ExternalLink,
   Lightbulb,
-  CheckCircle,
+  CheckCircle2,
   Circle,
 } from "lucide-react";
 
-// import API client
 import API from "../../utils/api";
 
 /**
- * RoadmapDetail - shows structured roadmap content with back action.
+ * RoadmapDetail - shows structured roadmap content with back + progress tracking.
  * Props:
  * - roadmap: { _id, title, content: { introduction, steps, projects, tips }, progress }
  * - onBack: function
- * - onUpdate: optional function(updatedRoadmap) -> parent can update its state
+ * - onUpdate: optional function(updatedRoadmap)
  */
 export default function RoadmapDetail({ roadmap, onBack, onUpdate }) {
   const [local, setLocal] = useState(roadmap);
@@ -29,24 +28,21 @@ export default function RoadmapDetail({ roadmap, onBack, onUpdate }) {
     setLocal(roadmap);
   }, [roadmap]);
 
-  if (!local || !local.content) {
-    return null;
-  }
+  if (!local || !local.content) return null;
 
   const { introduction, steps = [], projects = [], tips = [] } = local.content;
 
+  // ✅ Toggle step completion
   const toggleStep = async (index) => {
-    if (!local || !local._id) return;
+    if (!local?._id) return;
     try {
-      // optimistic UI: toggle locally first
-      const updatedLocal = { ...local, content: { ...local.content } };
-      updatedLocal.content = {
-        ...local.content,
-        steps: local.content.steps.map((s, i) =>
-          i === index ? { ...s, completed: !s.completed } : s
-        ),
-      };
-      // recalc progress locally
+      // optimistic UI
+      const updatedLocal = { ...local };
+      updatedLocal.content = { ...local.content };
+      updatedLocal.content.steps = steps.map((s, i) =>
+        i === index ? { ...s, completed: !s.completed } : s
+      );
+
       const completedCount = updatedLocal.content.steps.filter(
         (s) => s.completed
       ).length;
@@ -56,7 +52,7 @@ export default function RoadmapDetail({ roadmap, onBack, onUpdate }) {
 
       setLocal(updatedLocal);
 
-      // call backend to persist
+      // persist to backend
       const res = await API.patch(
         `/roadmaps/${local._id}/steps/${index}/toggle`
       );
@@ -65,18 +61,6 @@ export default function RoadmapDetail({ roadmap, onBack, onUpdate }) {
       if (typeof onUpdate === "function") onUpdate(updatedFromServer);
     } catch (err) {
       console.error("Failed to toggle step:", err);
-      // revert: refetch updated roadmap from backend
-      try {
-        const fresh = await API.get(`/roadmaps`);
-        // try to find one matching id
-        const found = fresh.data.find((r) => r._id === local._id);
-        if (found) {
-          setLocal(found);
-          if (typeof onUpdate === "function") onUpdate(found);
-        }
-      } catch (e) {
-        // ignore
-      }
     }
   };
 
@@ -102,7 +86,10 @@ export default function RoadmapDetail({ roadmap, onBack, onUpdate }) {
             {local.title}
           </h2>
           <div className="text-sm text-gray-400 mt-1">
-            Progress: {local.progress ?? 0}%
+            Progress:{" "}
+            <span className="font-semibold text-purple-400">
+              {local.progress ?? 0}%
+            </span>
           </div>
         </div>
       </div>
@@ -112,7 +99,9 @@ export default function RoadmapDetail({ roadmap, onBack, onUpdate }) {
         {introduction && (
           <section className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700">
             <h3 className="text-lg font-bold text-white mb-2">Introduction</h3>
-            <p className="text-gray-300 text-sm">{introduction}</p>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {introduction}
+            </p>
           </section>
         )}
 
@@ -121,12 +110,19 @@ export default function RoadmapDetail({ roadmap, onBack, onUpdate }) {
           <section className="space-y-6">
             <h3 className="text-xl font-bold text-white">Core Steps</h3>
             {steps.map((step, idx) => (
-              <div
+              <motion.div
                 key={idx}
-                className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700 flex flex-col md:flex-row md:items-start md:justify-between gap-4"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`rounded-2xl p-4 sm:p-6 border shadow-md transition
+                  ${
+                    step.completed
+                      ? "bg-green-900/30 border-green-600"
+                      : "bg-gray-800 border-gray-700"
+                  }`}
               >
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-500/20 rounded">
                       <BookOpen size={18} className="text-purple-400" />
                     </div>
@@ -134,38 +130,7 @@ export default function RoadmapDetail({ roadmap, onBack, onUpdate }) {
                       {step.title}
                     </h4>
                   </div>
-                  <p className="text-gray-300 text-sm mb-3">
-                    {step.description}
-                  </p>
 
-                  {/* Resources */}
-                  {step.resources?.length > 0 && (
-                    <ul className="space-y-2 text-gray-300">
-                      {step.resources.map((r, i) => (
-                        <li
-                          key={i}
-                          className="flex items-center gap-2 text-sm hover:underline"
-                        >
-                          <ChevronRight size={16} className="text-purple-400" />
-                          <a
-                            href={r.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1"
-                          >
-                            {r.title}
-                            <ExternalLink
-                              size={14}
-                              className="text-purple-400"
-                            />
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div className="flex flex-col items-end gap-3">
                   <button
                     onClick={() => toggleStep(idx)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg font-semibold text-sm transition
@@ -176,18 +141,38 @@ export default function RoadmapDetail({ roadmap, onBack, onUpdate }) {
                       }`}
                   >
                     {step.completed ? (
-                      <CheckCircle size={16} />
+                      <CheckCircle2 size={16} />
                     ) : (
                       <Circle size={16} />
                     )}
                     {step.completed ? "Completed" : "Mark as done"}
                   </button>
-
-                  <div className="text-xs text-gray-400">
-                    {step.completed ? "Done" : "Not done"}
-                  </div>
                 </div>
-              </div>
+
+                <p className="text-gray-300 text-sm mb-3">{step.description}</p>
+
+                {step.resources?.length > 0 && (
+                  <ul className="space-y-2 text-gray-300">
+                    {step.resources.map((r, i) => (
+                      <li
+                        key={i}
+                        className="flex items-center gap-2 text-sm hover:underline"
+                      >
+                        <ChevronRight size={16} className="text-purple-400" />
+                        <a
+                          href={r.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1"
+                        >
+                          {r.title}
+                          <ExternalLink size={14} className="text-purple-400" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </motion.div>
             ))}
           </section>
         )}
