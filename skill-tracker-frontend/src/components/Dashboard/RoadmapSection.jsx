@@ -9,19 +9,27 @@ export default function RoadmapSection({
   roadmaps = [],
   removeRoadmap,
   onOpenRoadmap,
-  onOpenResourceModal,
   onOpenAIModal,
   cardVariants,
   buttonVariants,
-  onUpdateRoadmap, // ✅ new prop: parent passes callback to update roadmap progress in list
+  onUpdateRoadmap,
 }) {
   const { getActualTheme } = useTheme();
   const resolvedTheme = getActualTheme(); // "light" | "dark"
 
-  const cardBg =
+  // 🎨 Theme based styles
+  const textPrimary =
+    resolvedTheme === "light" ? "text-gray-900" : "text-white";
+  const textSecondary =
+    resolvedTheme === "light" ? "text-gray-600" : "text-gray-400";
+
+  const cardBase =
     resolvedTheme === "light"
-      ? "bg-white border-gray-200 text-gray-800"
-      : "bg-gray-800 border-gray-700 text-white";
+      ? "bg-white border-gray-200 shadow-md"
+      : "bg-gray-800 border-gray-700 shadow-xl";
+
+  const hoverBg =
+    resolvedTheme === "light" ? "hover:bg-gray-100" : "hover:bg-gray-700";
 
   return (
     <motion.section
@@ -32,22 +40,13 @@ export default function RoadmapSection({
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h2
-          className={`text-2xl font-bold ${
-            resolvedTheme === "light" ? "text-gray-900" : "text-white"
-          }`}
-        >
-          Your Roadmaps
-        </h2>
+        <h2 className={`text-2xl font-bold ${textPrimary}`}>Your Roadmaps</h2>
 
         <div className="flex w-full sm:w-auto items-center gap-3">
+          {/* Sort dropdown */}
           <div className="relative flex-1 sm:flex-none">
             <select
-              className={`w-full sm:w-auto rounded-lg border p-2 pr-8 ${
-                resolvedTheme === "light"
-                  ? "bg-gray-100 text-gray-800 border-gray-300"
-                  : "bg-gray-800 text-white border-gray-700"
-              }`}
+              className={`w-full sm:w-auto rounded-lg border p-2 pr-8 ${cardBase} ${textPrimary}`}
               aria-label="Sort roadmaps"
             >
               <option>Newest First</option>
@@ -56,15 +55,14 @@ export default function RoadmapSection({
             </select>
             <ChevronDown
               size={16}
-              className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${
-                resolvedTheme === "light" ? "text-gray-500" : "text-gray-400"
-              }`}
+              className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
             />
           </div>
 
+          {/* Create button */}
           <motion.button
             onClick={onOpenAIModal}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold text-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold text-sm shadow-lg"
             style={{
               background:
                 "linear-gradient(90deg, rgba(168,85,247,1) 0%, rgba(236,72,153,1) 100%)",
@@ -78,20 +76,20 @@ export default function RoadmapSection({
       </div>
 
       {/* Roadmap Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {/* Generate with AI */}
         <motion.div
           variants={cardVariants}
           whileHover={{ scale: 1.02 }}
-          className={`${cardBg} rounded-2xl shadow-xl border cursor-pointer flex flex-col items-center justify-center text-center p-6`}
+          className={`${cardBase} rounded-2xl border cursor-pointer flex flex-col items-center justify-center text-center p-6 transition ${hoverBg}`}
           role="button"
           onClick={onOpenAIModal}
         >
-          <Sparkles size={36} className="text-purple-400" />
-          <h3 className="text-lg sm:text-xl font-bold mt-3">
+          <Sparkles size={36} className="text-purple-500" />
+          <h3 className={`text-lg sm:text-xl font-bold mt-3 ${textPrimary}`}>
             Generate with AI
           </h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p className={`mt-2 text-sm ${textSecondary}`}>
             Create a personalized roadmap using AI.
           </p>
         </motion.div>
@@ -100,19 +98,19 @@ export default function RoadmapSection({
         <motion.div
           variants={cardVariants}
           whileHover={{ scale: 1.02 }}
-          className={`${cardBg} rounded-2xl shadow-xl border cursor-pointer flex flex-col items-center justify-center text-center p-6`}
+          className={`${cardBase} rounded-2xl border cursor-pointer flex flex-col items-center justify-center text-center p-6 transition ${hoverBg}`}
           role="button"
         >
-          <Grid3X3 size={36} className="text-purple-400" />
-          <h3 className="text-lg sm:text-xl font-bold mt-3">
+          <Grid3X3 size={36} className="text-purple-500" />
+          <h3 className={`text-lg sm:text-xl font-bold mt-3 ${textPrimary}`}>
             Browse Templates
           </h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Choose from pre-made paths.
+          <p className={`mt-2 text-sm ${textSecondary}`}>
+            Choose from pre-made learning paths.
           </p>
         </motion.div>
 
-        {/* User Roadmaps */}
+        {/* Dynamic Roadmaps */}
         <AnimatePresence>
           {roadmaps.map((rm) => (
             <motion.article
@@ -121,18 +119,18 @@ export default function RoadmapSection({
               initial="hidden"
               animate="visible"
               whileHover={{ scale: 1.02 }}
-              className={`${cardBg} relative rounded-2xl shadow-xl border cursor-pointer flex flex-col justify-between p-6`}
+              className={`${cardBase} relative rounded-2xl border cursor-pointer flex flex-col justify-between p-6 transition ${hoverBg}`}
               onClick={() =>
                 onOpenRoadmap?.(rm, (updated) => onUpdateRoadmap?.(updated))
               }
             >
-              {/* Delete */}
+              {/* Delete Button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   removeRoadmap?.(rm._id || rm.id);
                 }}
-                className="absolute top-3 right-3 p-1 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                className={`absolute top-3 right-3 p-1 rounded-full text-gray-400 ${hoverBg}`}
                 aria-label={`Remove ${rm.title}`}
               >
                 <Trash2 size={14} />
@@ -140,23 +138,26 @@ export default function RoadmapSection({
 
               {/* Title + Description */}
               <div>
-                <h3 className="text-lg sm:text-xl font-bold leading-tight">
+                <h3
+                  className={`text-lg sm:text-xl font-bold leading-snug line-clamp-1 ${textPrimary}`}
+                >
                   {rm.title}
                 </h3>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                  {rm.description || "No description provided."}
+                <p className={`mt-2 text-sm line-clamp-2 ${textSecondary}`}>
+                  {rm.content?.introduction ||
+                    "No introduction available for this roadmap."}
                 </p>
               </div>
 
-              {/* Footer: Date + Goals + Progress */}
+              {/* Footer: Date + Steps + Progress */}
               <div className="mt-4 flex items-center justify-between">
-                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                <div className={`text-xs sm:text-sm ${textSecondary}`}>
                   <div>
-                    {rm.date
-                      ? rm.date
-                      : new Date(rm.createdAt).toLocaleDateString()}
+                    {rm.createdAt
+                      ? new Date(rm.createdAt).toLocaleDateString()
+                      : ""}
                   </div>
-                  <div>{rm.content?.steps?.length || rm.goals || 0} goals</div>
+                  <div>{rm.content?.steps?.length || 0} steps</div>
                 </div>
                 <ProgressRing progress={rm.progress || 0} />
               </div>

@@ -20,7 +20,7 @@ import { getComponentTheme } from "../../utils/themeUtils"; // Assuming correct 
  * It's fixed at the top and ensures page content starts below it.
  */
 const NAV_ITEMS = [
-  { name: "Home", icon: Home, path: "/home" },
+  { name: "Home", icon: Home, path: "/" },
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { name: "Activity", icon: Activity, path: "/activity" },
   { name: "Templates", icon: Grid3X3, path: "/templates" },
@@ -177,7 +177,7 @@ export default function DashboardNavbar() {
                 to={item.path}
                 onClick={() => setOpen(false)}
                 className={getMobileNavLinkClasses}
-                end={item.path === "/home"}
+                end={item.path === "/"}
               >
                 <item.icon size={18} aria-hidden="true" />
                 <span className="text-base">{item.name}</span>

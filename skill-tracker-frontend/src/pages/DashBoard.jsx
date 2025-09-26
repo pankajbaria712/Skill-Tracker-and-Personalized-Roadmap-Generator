@@ -1,7 +1,7 @@
 // src/pages/Dashboard.jsx
 import React, { useState, useLayoutEffect, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, CreditCard, Loader2 } from "lucide-react";
+import { User, Loader2, Sparkles } from "lucide-react";
 
 import useBreakpoint from "../hooks/useBreakpoint";
 import Sidebar from "../components/Dashboard/Sidebar";
@@ -14,10 +14,9 @@ import AIResourceModal from "../components/Dashboard/AIResourceModal";
 import RoadmapDetail from "../components/Dashboard/RoadmapDetail";
 import TargetCursor from "../components/Animations/TargetCursor/TargetCursor";
 
-// theme
 import { useTheme } from "../components/ThemeProvider";
 
-// ✅ import your backend API client
+// ✅ backend API client
 import API from "../utils/api";
 
 const cardVariants = {
@@ -32,16 +31,16 @@ const STORAGE_KEY = "sidebarExpanded";
 export default function Dashboard() {
   const { isDesktop, isMobile } = useBreakpoint();
   const { theme, getActualTheme } = useTheme();
-  const resolvedTheme = getActualTheme(); // "light" | "dark"
+  const resolvedTheme = getActualTheme();
 
   // Navigation
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
-  // Roadmaps (start empty, fetch from backend)
+  // Roadmaps
   const [roadmaps, setRoadmaps] = useState([]);
 
-  // Roadmap creation & modals
+  // Roadmap modals
   const [isRoadmapModalOpen, setIsRoadmapModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [roadmapTitle, setRoadmapTitle] = useState("");
@@ -52,7 +51,10 @@ export default function Dashboard() {
   const [selectedRoadmapTitle, setSelectedRoadmapTitle] = useState("");
   const [selectedRoadmap, setSelectedRoadmap] = useState(null);
 
-  // Sidebar state persistence
+  // ✅ Username state
+  const [username, setUsername] = useState("Learner");
+
+  // Sidebar persistence
   useLayoutEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -80,7 +82,7 @@ export default function Dashboard() {
     );
   }, [isSidebarExpanded]);
 
-  // ✅ Fetch saved roadmaps on mount
+  // ✅ Fetch saved roadmaps
   useEffect(() => {
     const fetchRoadmaps = async () => {
       try {
@@ -93,7 +95,31 @@ export default function Dashboard() {
     fetchRoadmaps();
   }, []);
 
-  // ✅ Call backend to generate + save roadmap
+  // ✅ Fetch current user name properly
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const token = localStorage.getItem("token");
+        const uid = localStorage.getItem("uid");
+
+        if (!token && !uid) return;
+
+        const res = await API.get(uid ? `/auth/me?uid=${uid}` : "/auth/me", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+
+        if (res.data?.user) {
+          const { firstName, lastName } = res.data.user;
+          setUsername(`${firstName} ${lastName || ""}`.trim());
+        }
+      } catch (err) {
+        console.error("User fetch failed:", err);
+      }
+    }
+    fetchUser();
+  }, []);
+
+  // ✅ AI Roadmap generation
   const generateRoadmapWithAI = async () => {
     setIsGenerating(true);
     setError(null);
@@ -113,13 +139,26 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ Delete roadmap via backend
+  // ✅ Delete roadmap
   const removeRoadmap = async (id) => {
     try {
       await API.delete(`/roadmaps/${id}`);
       setRoadmaps((r) => r.filter((rm) => rm._id !== id));
+      if (selectedRoadmap && selectedRoadmap._id === id) {
+        setSelectedRoadmap(null);
+      }
     } catch (err) {
       setError("Delete failed: " + err.message);
+    }
+  };
+
+  // ✅ Update roadmap state
+  const updateRoadmapInState = (updated) => {
+    setRoadmaps((prev) =>
+      prev.map((r) => (r._id === updated._id ? updated : r))
+    );
+    if (selectedRoadmap && selectedRoadmap._id === updated._id) {
+      setSelectedRoadmap(updated);
     }
   };
 
@@ -146,65 +185,38 @@ export default function Dashboard() {
           <div className="space-y-6">
             <TargetCursor />
 
-            {/* Welcome Card */}
+            {/* 🎉 Welcome Card */}
             <motion.div
               variants={cardVariants}
               initial="hidden"
               animate="visible"
-              className={`flex flex-col md:flex-row items-start md:items-center justify-between gap-4 rounded-2xl p-4 sm:p-6 border
-                ${
-                  resolvedTheme === "light"
-                    ? "bg-white border-gray-200 text-gray-800"
-                    : "bg-gray-800 border-gray-700 text-white"
-                }
-              `}
+              className="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(168,85,247,1) 0%, rgba(59,130,246,1) 100%)",
+              }}
             >
-              <div className="flex items-start md:items-center gap-4">
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center
-                  ${
-                    resolvedTheme === "light"
-                      ? "bg-purple-500/10 text-purple-600"
-                      : "bg-purple-500/10 text-white"
-                  }
-                `}
-                >
-                  <User size={26} />
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
+                    <User size={28} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Hi, {username} 👋</h3>
+                    <p className="text-sm opacity-90">
+                      Ready to conquer your next skill today?
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg sm:text-xl font-bold">
-                    Hello, Pankaj!
-                  </h3>
-                  <p
-                    className={`text-sm ${
-                      resolvedTheme === "light"
-                        ? "text-gray-500"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    Welcome back to your learning journey.
-                  </p>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-4">
-                <div
-                  className={`${
-                    resolvedTheme === "light" ? "text-gray-800" : "text-white"
-                  } flex items-center gap-2`}
+                <motion.button
+                  onClick={() => setIsRoadmapModalOpen(true)}
+                  whileHover={{ scale: 1.05 }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm shadow-md bg-white text-purple-600"
                 >
-                  <CreditCard size={16} />
-                  <span className="text-sm">10 Credits</span>
-                </div>
-                <button
-                  className="px-3 py-2 rounded-full font-semibold text-white text-sm"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, rgba(168,85,247,1) 0%, rgba(236,72,153,1) 100%)",
-                  }}
-                >
-                  Purchase Credits
-                </button>
+                  <Sparkles size={18} />
+                  <span>Start New Roadmap</span>
+                </motion.button>
               </div>
             </motion.div>
 
@@ -215,20 +227,15 @@ export default function Dashboard() {
                   key="detail"
                   roadmap={selectedRoadmap}
                   onBack={() => setSelectedRoadmap(null)}
+                  onUpdate={updateRoadmapInState}
                 />
               ) : isGenerating ? (
                 <motion.div
                   key="loading"
                   className="flex flex-col items-center justify-center py-12"
                 >
-                  <Loader2 size={40} className="animate-spin text-purple-400" />
-                  <p
-                    className={`mt-4 ${
-                      resolvedTheme === "light"
-                        ? "text-gray-600"
-                        : "text-gray-300"
-                    }`}
-                  >
+                  <Loader2 size={40} className="animate-spin text-purple-200" />
+                  <p className="mt-4 text-white/80">
                     Generating your personalized roadmap...
                   </p>
                 </motion.div>
@@ -254,6 +261,7 @@ export default function Dashboard() {
                     onOpenResourceModal={openResourceModalFor}
                     onOpenAIModal={() => setIsRoadmapModalOpen(true)}
                     cardVariants={cardVariants}
+                    onUpdateRoadmap={updateRoadmapInState}
                   />
 
                   <ActivityFeed />
@@ -284,7 +292,6 @@ export default function Dashboard() {
     }
   };
 
-  // 🔹 Full page background (light/dark/system)
   const getDashboardBg = () => {
     if (theme === "system") {
       return "bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]";
@@ -296,7 +303,6 @@ export default function Dashboard() {
     <div
       className={`${getDashboardBg()} min-h-screen flex transition-colors duration-300`}
     >
-      {/* Sidebar for desktop */}
       {isDesktop && (
         <Sidebar
           activeTab={activeTab}
@@ -306,9 +312,7 @@ export default function Dashboard() {
           setIsSidebarExpanded={setIsSidebarExpanded}
         />
       )}
-      {/* Main area */}
       <div className="flex-1 flex flex-col" style={layoutStyle}>
-        {/* Navbar for mobile */}
         {isMobile && (
           <Navbar
             activeTab={activeTab}
@@ -317,11 +321,9 @@ export default function Dashboard() {
             setIsSidebarExpanded={setIsSidebarExpanded}
           />
         )}
-
         <main className="p-4 sm:p-6 flex-1">{renderDashboardContent()}</main>
       </div>
 
-      {/* Modals */}
       <AIRoadmapModal
         isModalOpen={isRoadmapModalOpen}
         setIsModalOpen={setIsRoadmapModalOpen}
