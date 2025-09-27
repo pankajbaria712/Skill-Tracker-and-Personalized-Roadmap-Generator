@@ -1,16 +1,14 @@
 // skill-tracker-backend/config/firebaseAdmin.js
 import admin from "firebase-admin";
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+let serviceAccount;
 
-// Read the service account file
-const serviceAccount = JSON.parse(
-  readFileSync(join(__dirname, "../firebase-service-account.json"))
-);
+try {
+  // Parse the JSON string from environment variable
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} catch (error) {
+  console.error("❌ Error parsing FIREBASE_SERVICE_ACCOUNT:", error);
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({
