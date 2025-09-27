@@ -4,7 +4,7 @@ import { auth } from "../firebase/firebaseClient";
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL.replace(/\/$/, "") + "/api",
- // use env variable for production
+ // use env variable for productions
 });
 
 API.interceptors.request.use(async (config) => {
