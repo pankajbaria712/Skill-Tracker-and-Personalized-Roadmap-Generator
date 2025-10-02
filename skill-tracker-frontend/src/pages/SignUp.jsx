@@ -1,5 +1,4 @@
-// src/pages/SignUp.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { auth, googleProvider } from "../firebase/firebaseClient";
 import {
   signInWithPopup,
@@ -12,47 +11,97 @@ import API from "../utils/api";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { FaGoogle } from "react-icons/fa"; // Using react-icons for a modern look
+import { FaGoogle } from "react-icons/fa";
 import { useTheme } from "../components/ThemeProvider";
 
-// This component will be the registration page for the Skill Tracker app.
-// It shares the same modern, dark, and animated design as the sign-in page,
-// ensuring a consistent user experience.
+const themeConfig = {
+  system: {
+    background: "bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]",
+    image: "/bg-system.png",
+    card: "backdrop-blur-md bg-white/10 border-white/20",
+    text: "text-white",
+    input:
+      "border-white/20 bg-white/5 text-white placeholder-gray-400 focus:ring-purple-500",
+    blob: [
+      { class: "bg-purple-500", style: "opacity-30" },
+      { class: "bg-pink-500", style: "opacity-30 animation-delay-2000" },
+    ],
+    border: "border-purple-400/30",
+    separatorText: "text-gray-400",
+  },
+  dark: {
+    background: "bg-black",
+    image: "/bg-dark.png",
+    card: "backdrop-blur-md bg-gray-900/80 border-gray-700/50",
+    text: "text-white",
+    input:
+      "border-gray-600/50 bg-gray-800/50 text-white placeholder-gray-400 focus:ring-purple-500",
+    blob: [
+      { class: "bg-purple-600", style: "opacity-20" },
+      { class: "bg-blue-600", style: "opacity-20 animation-delay-2000" },
+    ],
+    border: "border-purple-400/20",
+    separatorText: "text-gray-400",
+  },
+  light: {
+    background: "bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100",
+    image: "/bg-light.png",
+    card: "backdrop-blur-md bg-white/80 border-gray-200/50",
+    text: "text-gray-800",
+    input:
+      "border-gray-300/50 bg-white/80 text-gray-800 placeholder-gray-500 focus:ring-purple-500",
+    blob: [
+      { class: "bg-blue-200", style: "opacity-40" },
+      { class: "bg-purple-200", style: "opacity-40 animation-delay-2000" },
+    ],
+    border: "border-purple-400/30",
+    separatorText: "text-gray-500",
+  },
+};
+
+function Blobs({ theme }) {
+  return (
+    <>
+      {themeConfig[theme].blob.map((b, idx) => (
+        <div
+          key={idx}
+          className={`absolute ${idx === 0 ? "top-1/4 left-1/4" : "bottom-1/4 right-1/4"} w-96 h-96 ${b.class} rounded-full mix-blend-multiply filter blur-3xl ${b.style} animate-blob`}
+        ></div>
+      ))}
+    </>
+  );
+}
+
 export default function SignUp() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const [user] = useAuthState(auth);
   const { theme, getActualTheme } = useTheme();
+  const actualTheme = useMemo(() => getActualTheme(), [getActualTheme]);
+  const config = themeConfig[actualTheme];
 
-  // Get the actual theme that should be applied
-  const isDark = getActualTheme() === "dark";
-
-  // Redirect if the user is already logged in
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
+    if (user) navigate("/dashboard");
   }, [user, navigate]);
 
-  // Handle redirect result for Google sign-in
   useEffect(() => {
     getRedirectResult(auth)
       .then((result) => {
-        if (result && result.user) {
-          handleGoogleUser(result.user);
-        }
+        if (result?.user) handleGoogleUser(result.user);
       })
-      .catch((err) => console.error(err));
+      .catch(console.error);
   }, []);
 
-  // Form validation function
-  const validateInputs = () => {
+  const validateInputs = useCallback(() => {
+    const { firstName, lastName, email, password } = form;
     if (!firstName || !lastName || !email || !password) {
       setError("All fields are required");
       return false;
@@ -67,65 +116,51 @@ export default function SignUp() {
       return false;
     }
     return true;
-  };
+  }, [form]);
 
-  // Handler for email and password registration
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
     if (!validateInputs()) return;
-
+    setLoading(true);
     try {
-      setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        email,
-        password
+        form.email,
+        form.password
       );
       const user = userCredential.user;
-
       await updateProfile(user, {
-        displayName: `${firstName} ${lastName}`,
+        displayName: `${form.firstName} ${form.lastName}`,
       });
-
       await API.post("/auth/register", {
-        firstName,
-        lastName,
+        firstName: form.firstName,
+        lastName: form.lastName,
         email: user.email,
-        password,
         uid: user.uid,
       });
-
       navigate("/dashboard");
     } catch (error) {
-      if (error.response?.data?.message) {
-        setError(error.response.data.message);
-      } else {
-        setError(error.message);
-      }
+      setError(error.response?.data?.message || error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handler for Google sign-in
   const handleGoogleSignIn = async () => {
     if (loading) return;
     setError("");
+    setLoading(true);
     try {
-      setLoading(true);
       const result = await signInWithPopup(auth, googleProvider).catch(
         (err) => {
           if (err.code === "auth/popup-blocked") {
             return signInWithRedirect(auth, googleProvider);
-          } else {
-            throw err;
           }
+          throw err;
         }
       );
-      if (result && result.user) {
-        await handleGoogleUser(result.user);
-      }
+      if (result?.user) await handleGoogleUser(result.user);
     } catch (error) {
       if (error.code !== "auth/cancelled-popup-request") {
         setError(error.message);
@@ -135,185 +170,129 @@ export default function SignUp() {
     }
   };
 
-  // Function to handle the Google user after successful sign-in
   const handleGoogleUser = async (user) => {
-    let googleFirstName = user.displayName?.split(" ")[0] || "";
-    let googleLastName = user.displayName?.split(" ")[1] || "";
-
+    let [googleFirstName = "", googleLastName = ""] = user.displayName?.split(" ") || [];
     if (!googleFirstName || !googleLastName) {
       googleFirstName = prompt("Enter your first name:", "") || "";
       googleLastName = prompt("Enter your last name:", "") || "";
     }
-
     await updateProfile(user, {
       displayName: `${googleFirstName} ${googleLastName}`,
     });
-
     await API.post("/auth/google", {
       firstName: googleFirstName,
       lastName: googleLastName,
       email: user.email,
       uid: user.uid,
     });
-
     navigate("/dashboard");
   };
 
-  // Get background based on theme
-  const getBackground = () => {
-    if (theme === "system") {
-      return "bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]";
-    } else if (theme === "dark") {
-      return "bg-black";
-    } else {
-      return "bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100";
-    }
-  };
-
-  // Get background image URL based on theme
-  const getBackgroundImage = () => {
-    if (theme === "system") {
-      return "/bg-system.png";
-    } else if (theme === "dark") {
-      return "/bg-dark.png";
-    } else {
-      return "/bg-light.png";
-    }
-  };
-
-  // Get card background based on theme
-  const getCardBackground = () => {
-    if (theme === "system") {
-      return "backdrop-blur-md bg-white/10 border-white/20";
-    } else if (theme === "dark") {
-      return "backdrop-blur-md bg-gray-900/80 border-gray-700/50";
-    } else {
-      return "backdrop-blur-md bg-white/80 border-gray-200/50";
-    }
-  };
-
-  // Get text color based on theme
-  const getTextColor = () => {
-    if (theme === "system" || theme === "dark") {
-      return "text-white";
-    } else {
-      return "text-gray-800";
-    }
-  };
-
-  // Get input styles based on theme
-  const getInputStyles = () => {
-    if (theme === "system") {
-      return "border-white/20 bg-white/5 text-white placeholder-gray-400 focus:ring-purple-500";
-    } else if (theme === "dark") {
-      return "border-gray-600/50 bg-gray-800/50 text-white placeholder-gray-400 focus:ring-purple-500";
-    } else {
-      return "border-gray-300/50 bg-white/80 text-gray-800 placeholder-gray-500 focus:ring-purple-500";
-    }
+  const handleInputChange = (e) => {
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   return (
-    // Main container with theme-aware background
     <div
-      className={`relative min-h-screen flex items-center justify-center p-4 ${getBackground()} ${getTextColor()} overflow-hidden transition-all duration-500 bg-no-repeat bg-cover bg-center`}
-      style={{ backgroundImage: `url(${getBackgroundImage()})` }}
+      className={`relative min-h-screen flex items-center justify-center p-4 ${config.background} ${config.text} overflow-hidden transition-all duration-500 bg-no-repeat bg-cover bg-center`}
+      style={{ backgroundImage: `url(${config.image})` }}
     >
-      {/* Background blobs for a dynamic, creative feel */}
-      {theme === "system" && (
-        <>
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-        </>
-      )}
-
-      {theme === "dark" && (
-        <>
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        </>
-      )}
-
-      {theme === "light" && (
-        <>
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
-        </>
-      )}
-
-      {/* The main card with theme-aware glassmorphism effect */}
+      <Blobs theme={actualTheme} />
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
-        className={`relative z-10 p-8 w-full max-w-md rounded-3xl shadow-lg border transition-all duration-500 ${getCardBackground()}`}
+        className={`relative z-10 p-8 w-full max-w-md rounded-3xl shadow-lg border transition-all duration-500 ${config.card}`}
         style={{
           boxShadow:
-            theme === "system"
+            actualTheme === "system"
               ? "0 0 50px rgba(107,63,255,0.4)"
-              : theme === "dark"
+              : actualTheme === "dark"
               ? "0 0 50px rgba(0,0,0,0.6)"
               : "0 0 50px rgba(156,163,175,0.3)",
         }}
+        aria-busy={loading}
       >
-        {/* Loading overlay for a smooth user experience */}
         {loading && (
           <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-3xl">
-            <div className="loader border-t-4 border-b-4 border-purple-500 w-12 h-12 rounded-full animate-spin"></div>
+            <div className="loader border-t-4 border-b-4 border-purple-500 w-12 h-12 rounded-full animate-spin" aria-label="Loading"></div>
           </div>
         )}
 
         <h2
-          className={`text-4xl font-extrabold text-center mb-6 transition-all duration-500 ${
-            theme === "system"
-              ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600"
-              : theme === "dark"
-              ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-purple-500"
-              : "text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-purple-800"
-          }`}
+          className={`text-4xl font-extrabold text-center mb-6 transition-all duration-500 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600`}
         >
           Create Account
         </h2>
 
-        {/* Display error message with animation */}
         {error && (
           <motion.p
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-red-400 text-sm mb-4 text-center"
+            role="alert"
+            aria-live="assertive"
           >
             {error}
           </motion.p>
         )}
 
-        {/* The sign-up form */}
         <form onSubmit={handleRegister} className="space-y-4">
+          <label className="sr-only" htmlFor="firstName">First Name</label>
           <input
+            id="firstName"
+            name="firstName"
             type="text"
+            autoComplete="given-name"
             placeholder="First Name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className={`w-full px-5 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-300 ${getInputStyles()}`}
+            value={form.firstName}
+            onChange={handleInputChange}
+            className={`w-full px-5 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-300 ${config.input}`}
+            disabled={loading}
+            required
           />
+          <label className="sr-only" htmlFor="lastName">Last Name</label>
           <input
+            id="lastName"
+            name="lastName"
             type="text"
+            autoComplete="family-name"
             placeholder="Last Name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className={`w-full px-5 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-300 ${getInputStyles()}`}
+            value={form.lastName}
+            onChange={handleInputChange}
+            className={`w-full px-5 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-300 ${config.input}`}
+            disabled={loading}
+            required
           />
+          <label className="sr-only" htmlFor="email">Email</label>
           <input
+            id="email"
+            name="email"
             type="email"
+            autoComplete="email"
             placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`w-full px-5 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-300 ${getInputStyles()}`}
+            value={form.email}
+            onChange={handleInputChange}
+            className={`w-full px-5 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-300 ${config.input}`}
+            disabled={loading}
+            required
           />
+          <label className="sr-only" htmlFor="password">Password</label>
           <input
+            id="password"
+            name="password"
             type="password"
+            autoComplete="new-password"
             placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={`w-full px-5 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-300 ${getInputStyles()}`}
+            value={form.password}
+            onChange={handleInputChange}
+            className={`w-full px-5 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-300 ${config.input}`}
+            disabled={loading}
+            required
+            minLength={6}
           />
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -326,13 +305,7 @@ export default function SignUp() {
           </motion.button>
         </form>
 
-        <p
-          className={`text-sm text-center mt-6 transition-colors duration-300 ${
-            theme === "system" || theme === "dark"
-              ? "text-gray-300"
-              : "text-gray-600"
-          }`}
-        >
+        <p className={`text-sm text-center mt-6 transition-colors duration-300 ${actualTheme === "light" ? "text-gray-600" : "text-gray-300"}`}>
           Already have an account?{" "}
           <Link
             to="/SignIn"
@@ -342,38 +315,14 @@ export default function SignUp() {
           </Link>
         </p>
 
-        {/* Separator with a subtle gradient effect */}
         <div className="mt-6 flex items-center justify-center">
-          <span
-            className={`flex-grow border-t transition-colors duration-300 ${
-              theme === "system"
-                ? "border-purple-400/30"
-                : theme === "dark"
-                ? "border-purple-400/20"
-                : "border-purple-400/30"
-            }`}
-          ></span>
-          <span
-            className={`text-xs text-center uppercase mx-4 transition-colors duration-300 ${
-              theme === "system" || theme === "dark"
-                ? "text-gray-400"
-                : "text-gray-500"
-            }`}
-          >
+          <span className={`flex-grow border-t transition-colors duration-300 ${config.border}`}></span>
+          <span className={`text-xs text-center uppercase mx-4 transition-colors duration-300 ${config.separatorText}`}>
             or
           </span>
-          <span
-            className={`flex-grow border-t transition-colors duration-300 ${
-              theme === "system"
-                ? "border-purple-400/30"
-                : theme === "dark"
-                ? "border-purple-400/20"
-                : "border-purple-400/30"
-            }`}
-          ></span>
+          <span className={`flex-grow border-t transition-colors duration-300 ${config.border}`}></span>
         </div>
 
-        {/* Google sign-in button with animated hover effect */}
         <motion.button
           whileHover={{
             scale: 1.05,
@@ -383,17 +332,15 @@ export default function SignUp() {
           onClick={handleGoogleSignIn}
           disabled={loading}
           className={`mt-4 w-full font-semibold py-3 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 ${
-            theme === "system" || theme === "dark"
-              ? "bg-white text-gray-800"
-              : "bg-gray-800 text-white"
+            actualTheme === "light" ? "bg-gray-800 text-white" : "bg-white text-gray-800"
           }`}
+          aria-label="Continue with Google"
         >
           <FaGoogle size={20} className="text-red-500" />
           Continue with Google
         </motion.button>
       </motion.div>
       <style>{`
-         /* Custom CSS for the loading spinner and background blobs */
          .loader {
            border-color: #a855f7;
            border-right-color: transparent;
