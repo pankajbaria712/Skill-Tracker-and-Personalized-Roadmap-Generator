@@ -108,6 +108,8 @@ export default function Dashboard() {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
+        console.log(res.data); // Check the structure of response here
+
         if (res.data?.user) {
           const { firstName, lastName } = res.data.user;
           setUsername(`${firstName} ${lastName || ""}`.trim());
