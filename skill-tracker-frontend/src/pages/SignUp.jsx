@@ -11,7 +11,8 @@ import API from "../utils/api";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { FaGoogle } from "react-icons/fa";
+import * as FaIcons from "react-icons/fa";
+const { FaGoogle } = FaIcons;
 import { useTheme } from "../components/ThemeProvider";
 
 const themeConfig = {
@@ -65,7 +66,13 @@ function Blobs({ theme }) {
       {themeConfig[theme].blob.map((b, idx) => (
         <div
           key={idx}
-          className={`absolute ${idx === 0 ? "top-1/4 left-1/4" : "bottom-1/4 right-1/4"} w-96 h-96 ${b.class} rounded-full mix-blend-multiply filter blur-3xl ${b.style} animate-blob`}
+          className={`absolute ${
+            idx === 0 ? "top-1/4 left-1/4" : "bottom-1/4 right-1/4"
+          } w-96 h-96 ${
+            b.class
+          } rounded-full mix-blend-multiply filter blur-3xl ${
+            b.style
+          } animate-blob`}
         ></div>
       ))}
     </>
@@ -171,7 +178,8 @@ export default function SignUp() {
   };
 
   const handleGoogleUser = async (user) => {
-    let [googleFirstName = "", googleLastName = ""] = user.displayName?.split(" ") || [];
+    let [googleFirstName = "", googleLastName = ""] =
+      user.displayName?.split(" ") || [];
     if (!googleFirstName || !googleLastName) {
       googleFirstName = prompt("Enter your first name:", "") || "";
       googleLastName = prompt("Enter your last name:", "") || "";
@@ -218,7 +226,10 @@ export default function SignUp() {
       >
         {loading && (
           <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-3xl">
-            <div className="loader border-t-4 border-b-4 border-purple-500 w-12 h-12 rounded-full animate-spin" aria-label="Loading"></div>
+            <div
+              className="loader border-t-4 border-b-4 border-purple-500 w-12 h-12 rounded-full animate-spin"
+              aria-label="Loading"
+            ></div>
           </div>
         )}
 
@@ -241,7 +252,9 @@ export default function SignUp() {
         )}
 
         <form onSubmit={handleRegister} className="space-y-4">
-          <label className="sr-only" htmlFor="firstName">First Name</label>
+          <label className="sr-only" htmlFor="firstName">
+            First Name
+          </label>
           <input
             id="firstName"
             name="firstName"
@@ -254,7 +267,9 @@ export default function SignUp() {
             disabled={loading}
             required
           />
-          <label className="sr-only" htmlFor="lastName">Last Name</label>
+          <label className="sr-only" htmlFor="lastName">
+            Last Name
+          </label>
           <input
             id="lastName"
             name="lastName"
@@ -267,7 +282,9 @@ export default function SignUp() {
             disabled={loading}
             required
           />
-          <label className="sr-only" htmlFor="email">Email</label>
+          <label className="sr-only" htmlFor="email">
+            Email
+          </label>
           <input
             id="email"
             name="email"
@@ -280,7 +297,9 @@ export default function SignUp() {
             disabled={loading}
             required
           />
-          <label className="sr-only" htmlFor="password">Password</label>
+          <label className="sr-only" htmlFor="password">
+            Password
+          </label>
           <input
             id="password"
             name="password"
@@ -305,7 +324,11 @@ export default function SignUp() {
           </motion.button>
         </form>
 
-        <p className={`text-sm text-center mt-6 transition-colors duration-300 ${actualTheme === "light" ? "text-gray-600" : "text-gray-300"}`}>
+        <p
+          className={`text-sm text-center mt-6 transition-colors duration-300 ${
+            actualTheme === "light" ? "text-gray-600" : "text-gray-300"
+          }`}
+        >
           Already have an account?{" "}
           <Link
             to="/SignIn"
@@ -316,11 +339,17 @@ export default function SignUp() {
         </p>
 
         <div className="mt-6 flex items-center justify-center">
-          <span className={`flex-grow border-t transition-colors duration-300 ${config.border}`}></span>
-          <span className={`text-xs text-center uppercase mx-4 transition-colors duration-300 ${config.separatorText}`}>
+          <span
+            className={`flex-grow border-t transition-colors duration-300 ${config.border}`}
+          ></span>
+          <span
+            className={`text-xs text-center uppercase mx-4 transition-colors duration-300 ${config.separatorText}`}
+          >
             or
           </span>
-          <span className={`flex-grow border-t transition-colors duration-300 ${config.border}`}></span>
+          <span
+            className={`flex-grow border-t transition-colors duration-300 ${config.border}`}
+          ></span>
         </div>
 
         <motion.button
@@ -332,7 +361,9 @@ export default function SignUp() {
           onClick={handleGoogleSignIn}
           disabled={loading}
           className={`mt-4 w-full font-semibold py-3 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 ${
-            actualTheme === "light" ? "bg-gray-800 text-white" : "bg-white text-gray-800"
+            actualTheme === "light"
+              ? "bg-gray-800 text-white"
+              : "bg-white text-gray-800"
           }`}
           aria-label="Continue with Google"
         >

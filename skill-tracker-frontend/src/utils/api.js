@@ -2,9 +2,16 @@
 import axios from "axios";
 import { auth } from "../firebase/firebaseClient";
 
+const rawBackendUrl = import.meta.env?.VITE_BACKEND_URL ?? "";
+const backendUrl =
+  rawBackendUrl && String(rawBackendUrl).trim()
+    ? String(rawBackendUrl).replace(/\/$/, "")
+    : "";
+const baseURL = backendUrl ? `${backendUrl}/api` : "/api";
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL.replace(/\/$/, "") + "/api",
- // use env variable for productions
+  baseURL,
+  // use env variable for productions
 });
 
 API.interceptors.request.use(async (config) => {
