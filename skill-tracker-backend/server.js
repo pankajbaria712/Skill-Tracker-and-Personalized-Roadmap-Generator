@@ -3,63 +3,73 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/authRoutes.js";
 import skillsRoutes from "./routes/skillsRoutes.js";
-import roadmapRoutes from "./routes/roadmapRoutes.js"; // ✅ added
+import roadmapRoutes from "./routes/roadmapRoutes.js";
+import templateRoutes from "./routes/templateRoutes.js";
 
 dotenv.config();
 
-const app = express();
-app.use(cors());
-// increase body size limit for AI content
-app.use(express.json({ limit: "2mb" }));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Simple request logger (debugging only)
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// --- MIDDLEWARE ---
+app.use(cors());
+app.use(express.json());
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  if (["POST", "PUT", "PATCH"].includes(req.method)) {
-    try {
-      console.log("  Body:", JSON.stringify(req.body));
-    } catch {
-      console.log("  Body: <unavailable or parse error>");
-    }
-  }
+  console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
   next();
 });
 
-// ✅ MongoDB connect
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
-
-// ✅ Routes
-app.get("/", (req, res) => res.send("Skill Tracker backend is running"));
+// --- API ROUTES (mount BEFORE any static / catch-all) ---
 app.use("/api/auth", authRoutes);
 app.use("/api/skills", skillsRoutes);
-app.use("/api/roadmaps", roadmapRoutes); // ✅ added
+app.use("/api/roadmaps", roadmapRoutes);
+app.use("/api/templates", templateRoutes);
 
-// ✅ Global error handler
+// Quick health route
+app.get("/api/health", (req, res) => res.json({ ok: true, time: Date.now() }));
+
+// Serve frontend build only if requested (do this AFTER API routes)
+if (process.env.SERVE_CLIENT === "true") {
+  const clientBuild = path.join(__dirname, "../skill-tracker-frontend/dist");
+  app.use(express.static(clientBuild));
+  app.get("*", (req, res) =>
+    res.sendFile(path.join(clientBuild, "index.html"))
+  );
+}
+
+// Fallback for unmatched /api routes -> JSON 404
+app.use("/api", (req, res) => {
+  res.status(404).json({ message: `API route not found: ${req.originalUrl}` });
+});
+
+// Global error handler
 app.use((err, req, res, next) => {
   console.error("Unhandled error in request:", err?.stack || err);
   res.status(500).json({ message: "Server error" });
 });
 
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
-);
+// Connect to Mongo and start server
+mongoose
+  .connect(process.env.MONGO_URI, {
+    // options left as-is; adjust if using Mongoose v7+ deprecations
+  })
+  .then(() => {
+    console.log("✅ MongoDB connected");
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1);
+  });
 
-// ✅ Process-level handlers
-process.on("uncaughtException", (err) => {
-  console.error("UncaughtException:", err?.stack || err);
-});
-process.on("unhandledRejection", (reason) => {
-  console.error("UnhandledRejection:", reason);
-});
-
-export default server;
+export default app;
