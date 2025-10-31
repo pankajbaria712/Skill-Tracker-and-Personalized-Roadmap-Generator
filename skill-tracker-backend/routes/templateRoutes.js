@@ -1,5 +1,6 @@
 import express from "express";
 import Template from "../models/Template.js"; // Add this import
+import { generateTemplate } from "../controllers/templateController.js";
 
 const router = express.Router();
 
@@ -75,5 +76,8 @@ router.post("/", async (req, res) => {
     });
   }
 });
+
+// POST /api/templates/generate
+router.post("/generate", generateTemplate);
 
 export default router;

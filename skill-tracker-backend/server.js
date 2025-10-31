@@ -20,7 +20,21 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // --- MIDDLEWARE ---
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "x-user-uid",
+    ],
+    credentials: true,
+  })
+);
+// Express 5: preflight for API routes
+app.options("/api/*", cors());
 app.use(express.json());
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
@@ -40,13 +54,14 @@ app.get("/api/health", (req, res) => res.json({ ok: true, time: Date.now() }));
 if (process.env.SERVE_CLIENT === "true") {
   const clientBuild = path.join(__dirname, "../skill-tracker-frontend/dist");
   app.use(express.static(clientBuild));
+  // Express 5: SPA catch-all
   app.get("*", (req, res) =>
     res.sendFile(path.join(clientBuild, "index.html"))
   );
 }
 
 // Fallback for unmatched /api routes -> JSON 404
-app.use("/api", (req, res) => {
+app.use("/api/*", (req, res) => {
   res.status(404).json({ message: `API route not found: ${req.originalUrl}` });
 });
 
