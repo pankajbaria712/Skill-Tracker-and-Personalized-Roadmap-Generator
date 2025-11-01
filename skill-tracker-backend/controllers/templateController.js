@@ -8,12 +8,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Accepts JSON: { title, description, category, skills }
-// Calls Google Gemini generateImage to create an image based on template details
+// POST /api/templates/generate
+// Body: { title, description, category, skills[] }
 export const generateTemplate = async (req, res) => {
   try {
     const { title, description, category, skills } = req.body || {};
 
+    // 🧩 Validation
     if (!title || !description || !category || !Array.isArray(skills)) {
       return res.status(400).json({
         message:
@@ -21,85 +22,114 @@ export const generateTemplate = async (req, res) => {
       });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res
-        .status(500)
-        .json({ message: "GEMINI_API_KEY is not configured on the server" });
+    let bannerImage = null;
+    let styleHint = "";
+
+    // 🎨 (Optional) Get style hints from Gemini API
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    if (geminiApiKey) {
+      try {
+        const geminiPrompt = `
+          Suggest a short futuristic web design style for a roadmap banner titled "${title}".
+          Description: ${description}.
+          Focus on tech colors, gradients, UI layout, and modern design aesthetics.
+        `;
+
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+        const geminiBody = {
+          contents: [{ parts: [{ text: geminiPrompt }] }],
+        };
+
+        const geminiResponse = await axios.post(geminiUrl, geminiBody, {
+          timeout: 20000,
+          headers: { "Content-Type": "application/json" },
+        });
+
+        styleHint =
+          geminiResponse?.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+          "";
+        console.log("🧠 Gemini style hint:", styleHint);
+      } catch (err) {
+        console.warn("⚠️ Gemini text hint failed:", err?.message);
+      }
     }
 
-    const prompt = [
-      `Create a clean, modern banner image for a learning template.`,
-      `Title: ${title}`,
-      `Description: ${description}`,
-      `Category: ${category}`,
-      `Key skills: ${skills.join(", ")}`,
-      `Style: minimal, high-contrast, flat illustration, no text overlays, centered composition.`,
-    ].join("\n");
+    // 🖼️ Generate image via OpenAI (gpt-image-1)
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (openaiKey) {
+      try {
+        const imagePrompt = `
+          A modern roadmap banner for "${title}".
+          Description: ${description}.
+          Style inspiration: ${styleHint}.
+          Create a clean, tech-inspired UI illustration with glowing gradients (blue, purple, cyan).
+          Include roadmap or progress visuals, icons, and minimal design.
+          Avoid people, landscapes, and any text.
+        `;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateImage?key=${apiKey}`;
+        const openaiResponse = await axios.post(
+          "https://api.openai.com/v1/images/generations",
+          {
+            model: "gpt-image-1",
+            prompt: imagePrompt,
+            size: "1024x1024",
+            quality: "hd",
+            response_format: "b64_json", // ✅ safer than URL
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${openaiKey}`,
+              "Content-Type": "application/json",
+            },
+            timeout: 60000,
+          }
+        );
 
-    // Body shape based on current v1beta generateImage conventions for Gemini
-    const body = {
-      prompt: {
-        text: prompt,
-      },
-      // Optional size hint; backend can adjust as needed
-      // Common values: "1024x1024", "768x512", etc.
-      // If API ignores unknown fields, it's harmless
-      size: "1024x1024",
-      // Optional safety/quality knobs can be added here
-    };
+        const imageBase64 = openaiResponse.data?.data?.[0]?.b64_json;
 
-    const response = await axios.post(url, body, {
-      timeout: 30000,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    // Try to extract base64 image data from known response shapes
-    let base64Data = null;
-    // Hypothetical Gemini inline_data format
-    base64Data =
-      response?.data?.candidates?.[0]?.content?.parts?.find(
-        (p) => p?.inline_data?.data
-      )?.inline_data?.data || base64Data;
-    // Alternative common field names
-    base64Data = response?.data?.image?.base64 || base64Data;
-    base64Data = response?.data?.data?.[0]?.b64_json || base64Data;
-
-    if (!base64Data) {
-      return res.status(502).json({
-        message: "Gemini response missing image data",
-        details: response?.data || null,
-      });
+        if (imageBase64) {
+          const uploadRes = await cloudinary.uploader.upload(
+            `data:image/png;base64,${imageBase64}`,
+            { folder: "ai-banners" }
+          );
+          bannerImage = uploadRes.secure_url;
+          console.log("✅ Cloudinary upload success:", bannerImage);
+        } else {
+          console.warn("⚠️ No image data received from OpenAI");
+        }
+      } catch (err) {
+        console.warn(
+          "⚠️ OpenAI image generation failed:",
+          err?.response?.data || err?.message
+        );
+      }
     }
 
-    // Upload to Cloudinary
-    const uploadResponse = await cloudinary.uploader.upload(
-      `data:image/png;base64,${base64Data}`,
-      { folder: "roadmap-banners" }
-    );
+    // 🖼️ Fallback image
+    if (!bannerImage) {
+      const seed = encodeURIComponent(title.toLowerCase());
+      bannerImage = `https://picsum.photos/seed/${seed}/1024/512`;
+      console.warn("⚠️ Using fallback image:", bannerImage);
+    }
 
-    const bannerImage = uploadResponse?.secure_url;
-
-    // Persist the new template
+    // 💾 Save Template
     const templateDoc = new Template({
       title,
       description,
       category,
-      skills: Array.isArray(skills) ? skills : [],
+      skills,
       bannerImage,
     });
-    const saved = await templateDoc.save();
 
+    const saved = await templateDoc.save();
     return res.status(201).json(saved);
   } catch (err) {
     const status = err?.response?.status || 500;
     const details = err?.response?.data || err?.message || "Unknown error";
-    console.error("POST /api/templates/generate error", details);
-    return res.status(status).json({ message: "Gemini API error", details });
+    console.error("❌ POST /api/templates/generate error:", details);
+    return res
+      .status(status)
+      .json({ message: "Failed to create template", details });
   }
 };
 

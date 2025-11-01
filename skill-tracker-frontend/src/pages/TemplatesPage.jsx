@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
+import API from "../utils/api";
 import Navbar from "../components/Navbar";
-
-const apiBase = import.meta.env.VITE_API_URL;
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState([]);
@@ -24,7 +22,7 @@ export default function TemplatesPage() {
     async function load() {
       try {
         setLoading(true);
-        const { data } = await axios.get(`${apiBase}/api/templates`, {
+        const { data } = await API.get(`/templates`, {
           timeout: 20000,
         });
         if (mounted) setTemplates(Array.isArray(data) ? data : []);
@@ -287,10 +285,13 @@ export default function TemplatesPage() {
                         .map((s) => s.trim())
                         .filter(Boolean),
                     };
-                    const { data } = await axios.post(
-                      `${apiBase}/api/templates/generate`,
+                    const { data } = await API.post(
+                      `/templates/generate`,
                       payload,
-                      { timeout: 60000 }
+                      {
+                        timeout: 60000,
+                        headers: { "Content-Type": "application/json" },
+                      }
                     );
                     setTemplates((prev) => [data, ...prev]);
                     setOpenCreate(false);
