@@ -103,10 +103,10 @@ export default function Navbar() {
   // ✅ Pages we want in the nav
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Dashboard", path: "/Dashboard" },
-    { name: "Templates", path: "/TemplatesPage" },
-    { name: "Activity", path: "/ActivityPage" },
-    { name: "About", path: "/AboutPage" },
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Templates", path: "/templates" },
+    { name: "Activity", path: "/activity" },
+    { name: "About", path: "/about" },
   ];
 
   return (

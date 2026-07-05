@@ -1,18 +1,67 @@
-// src/pages/Activity.jsx
+// src/pages/AboutPage.jsx
 import React from "react";
 import Navbar from "../components/Navbar";
+import Footer from "../components/home/Footer";
+import AboutHeroSection from "../components/About/AboutHeroSection";
+import MissionSection from "../components/About/MissionSection";
+import AboutFeaturesSection from "../components/About/AboutFeaturesSection";
+import WhyChooseUsSection from "../components/About/WhyChooseUsSection";
+import DeveloperProfileSection from "../components/About/DeveloperProfileSection";
+import TechnologiesSection from "../components/About/TechnologiesSection";
+// import StatisticsSection from "../components/About/StatisticsSection";
+import LearningPhilosophySection from "../components/About/LearningPhilosophySection";
+import AboutCTASection from "../components/About/AboutCTASection";
+import { useTheme } from "../components/ThemeProvider";
+import TargetCursor from "../components/Animations/TargetCursor/TargetCursor";
+import ScrollVelocity from "../components/Animations/ScrollVelocity/ScrollVelocity";
 
-export default function Activity() {
+export default function AboutPage() {
+  const { theme } = useTheme();
+
+  // Get background based on theme
+  const getBackground = () => {
+    if (theme === "system") {
+      return "bg-[#18153f]";
+    } else if (theme === "dark") {
+      return "bg-black";
+    } else {
+      return "bg-white";
+    }
+  };
+
+  // Get text color based on theme
+  const getTextColor = () => {
+    if (theme === "system" || theme === "dark") {
+      return "text-white";
+    } else {
+      return "text-gray-900";
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div
+      className={`relative ${getBackground()} ${getTextColor()} transition-all duration-500`}
+    >
+      <TargetCursor />
       <Navbar />
-      <div className="pt-20 max-w-5xl mx-auto px-6">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-          About Page
-        </h1>
-        <p className="mt-4 text-gray-600 dark:text-gray-300">
-          Write about project and developer
-        </p>
+
+      <div className="relative" id="scroll-container">
+        <AboutHeroSection />
+
+        <ScrollVelocity
+          texts={["Track Skills", "Learn Better", "Grow Faster"]}
+          velocity={100}
+          className="custom-scroll-text"
+        />
+
+        <MissionSection />
+        <AboutFeaturesSection />
+        <WhyChooseUsSection />
+        <DeveloperProfileSection />
+        <TechnologiesSection />
+        <LearningPhilosophySection />
+        <AboutCTASection />
+        <Footer />
       </div>
     </div>
   );

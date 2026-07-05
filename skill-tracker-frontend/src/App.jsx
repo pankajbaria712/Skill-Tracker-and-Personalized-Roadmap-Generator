@@ -62,11 +62,11 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/SignUp" element={<SignUp />} />
-          <Route path="/SignIn" element={<SignIn />} />
-          <Route path="/TemplatesPage" element={<TemplatesPage />} />
-          <Route path="/ActivityPage" element={<ActivityPage />} />
-          <Route path="/AboutPage" element={<AboutPage />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/activity" element={<ActivityPage />} />
+          <Route path="/about" element={<AboutPage />} />
 
           {/* Protected route */}
           <Route
