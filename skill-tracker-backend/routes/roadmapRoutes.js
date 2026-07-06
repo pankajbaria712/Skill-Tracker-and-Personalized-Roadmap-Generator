@@ -2,6 +2,7 @@
 import express from "express";
 import fetch from "node-fetch";
 import Roadmap from "../models/roadmap.js";
+import Activity from "../models/Activity.js";
 import verifyFirebaseToken from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -106,6 +107,14 @@ Proficiency: ${proficiency || "not specified"}
     });
 
     await roadmap.save();
+    await Activity.create({
+      user: req.user.uid,
+      category: "ai",
+      type: "roadmap_generated",
+      title: `${title || roadmap.title} roadmap generated`,
+      description: `You generated a new AI roadmap for ${title || roadmap.title}.`,
+      metadata: { roadmapTitle: roadmap.title, progress: roadmap.progress },
+    });
     res.json(roadmap);
   } catch (err) {
     console.error("Error generating roadmap:", err);
@@ -151,6 +160,14 @@ router.patch(
       roadmap.progress = calculateProgressFromSteps(steps);
 
       await roadmap.save();
+      await Activity.create({
+        user: req.user.uid,
+        category: "progress",
+        type: "roadmap_progress_updated",
+        title: `${roadmap.title} progress updated`,
+        description: `You updated progress for ${roadmap.title}.`,
+        metadata: { roadmapTitle: roadmap.title, progress: roadmap.progress },
+      });
       res.json(roadmap);
     } catch (err) {
       console.error("Error toggling step:", err);
@@ -162,7 +179,17 @@ router.patch(
 // 📌 Delete roadmap
 router.delete("/:id", verifyFirebaseToken, async (req, res) => {
   try {
-    await Roadmap.findOneAndDelete({ _id: req.params.id, user: req.user.uid });
+    const deletedRoadmap = await Roadmap.findOneAndDelete({ _id: req.params.id, user: req.user.uid });
+    if (deletedRoadmap) {
+      await Activity.create({
+        user: req.user.uid,
+        category: "roadmaps",
+        type: "roadmap_deleted",
+        title: `${deletedRoadmap.title} roadmap removed`,
+        description: `You removed ${deletedRoadmap.title} from your roadmaps.`,
+        metadata: { roadmapTitle: deletedRoadmap.title },
+      });
+    }
     res.json({ message: "Roadmap deleted" });
   } catch (err) {
     console.error("Error deleting roadmap:", err);

@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import Activity from "../models/Activity.js";
 
 // ===================
 // Register (Email/Password)
@@ -28,6 +29,13 @@ export const register = async (req, res) => {
     });
 
     await newUser.save();
+    await Activity.create({
+      user: newUser.uid,
+      category: "auth",
+      type: "register",
+      title: "Account created",
+      description: "Your account was created successfully.",
+    });
     res
       .status(201)
       .json({ message: "User registered successfully", user: newUser });
@@ -58,6 +66,14 @@ export const googleSignIn = async (req, res) => {
       });
       await user.save();
     }
+
+    await Activity.create({
+      user: user.uid,
+      category: "auth",
+      type: "login",
+      title: "Signed in with Google",
+      description: "You signed in with your Google account.",
+    });
 
     res.status(200).json({ message: "Google sign-in successful", user });
   } catch (err) {
@@ -107,6 +123,14 @@ export const login = async (req, res) => {
       user.uid = uid;
       await user.save();
     }
+
+    await Activity.create({
+      user: user.uid,
+      category: "auth",
+      type: "login",
+      title: "Signed in",
+      description: "You signed in to your account.",
+    });
 
     return res.status(200).json({ message: "Login successful", user });
   } catch (err) {

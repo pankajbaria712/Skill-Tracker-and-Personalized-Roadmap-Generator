@@ -12,6 +12,7 @@ import authRoutes from "./routes/authRoutes.js";
 import skillsRoutes from "./routes/skillsRoutes.js";
 import roadmapRoutes from "./routes/roadmapRoutes.js";
 import templateRoutes from "./routes/templateRoutes.js";
+import activityRoutes from "./routes/activityRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,6 +47,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/skills", skillsRoutes);
 app.use("/api/roadmaps", roadmapRoutes);
 app.use("/api/templates", templateRoutes);
+app.use("/api/activities", activityRoutes);
 
 // Quick health route
 app.get("/api/health", (req, res) => res.json({ ok: true, time: Date.now() }));

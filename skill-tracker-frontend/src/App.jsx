@@ -65,7 +65,14 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/templates" element={<TemplatesPage />} />
-          <Route path="/activity" element={<ActivityPage />} />
+          <Route
+            path="/activity"
+            element={
+              <ProtectedRoute>
+                <ActivityPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/about" element={<AboutPage />} />
 
           {/* Protected route */}
