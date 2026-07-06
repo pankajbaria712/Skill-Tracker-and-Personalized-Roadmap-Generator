@@ -9,10 +9,11 @@ import Navbar from "../components/Dashboard/DashboardNavbar";
 import RoadmapSection from "../components/Dashboard/RoadmapSection";
 import AIRoadmapModal from "../components/Dashboard/AIRoadmapModal";
 import ActivityFeed from "../components/Dashboard/ActivityFeed";
-import TemplatesBrowser from "../components/Dashboard/TemplatesBrowser";
 import AIResourceModal from "../components/Dashboard/AIResourceModal";
 import RoadmapDetail from "../components/Dashboard/RoadmapDetail";
 import TargetCursor from "../components/Animations/TargetCursor/TargetCursor";
+import ActivityPage from "./ActivityPage";
+import TemplatesPage from "./TemplatesPage";
 
 import { useTheme } from "../components/ThemeProvider";
 
@@ -268,18 +269,42 @@ export default function Dashboard() {
 
                   <ActivityFeed />
 
-                  <TemplatesBrowser
-                    onUseTemplate={(template) => {
-                      setRoadmapTitle(template.title);
-                      setProficiency(50);
-                      setIsRoadmapModalOpen(true);
-                    }}
-                  />
+                  <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
+                    <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-purple-200">
+                      Quick access
+                    </p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <button
+                        onClick={() => setActiveTab("activity")}
+                        className="rounded-2xl border border-white/10 bg-slate-900/40 p-4 text-left transition hover:bg-slate-900/60"
+                      >
+                        <p className="font-semibold text-white">Open activity timeline</p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Review your learning milestones and updates.
+                        </p>
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("templates")}
+                        className="rounded-2xl border border-white/10 bg-slate-900/40 p-4 text-left transition hover:bg-slate-900/60"
+                      >
+                        <p className="font-semibold text-white">Open templates library</p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Explore roadmaps and start a new learning path.
+                        </p>
+                      </button>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         );
+
+      case "activity":
+        return <ActivityPage embedded />;
+
+      case "templates":
+        return <TemplatesPage embedded />;
 
       default:
         return (

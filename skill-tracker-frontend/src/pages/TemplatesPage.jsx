@@ -15,7 +15,7 @@ import API from "../utils/api";
 import Navbar from "../components/Navbar";
 import { useTheme } from "../components/ThemeProvider";
 
-export default function TemplatesPage() {
+export default function TemplatesPage({ embedded = false }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -93,17 +93,22 @@ export default function TemplatesPage() {
     };
   }, [templates, categories]);
 
-  return (
-    <div
-      className={`min-h-screen transition-colors duration-300 ${
+  const pageShellClass = embedded
+    ? "w-full"
+    : `min-h-screen transition-colors duration-300 ${
         isDark
           ? "bg-gradient-to-br from-[#07111f] via-[#111827] to-[#1f2937] text-white"
           : "bg-gradient-to-br from-slate-50 via-purple-50 to-sky-100 text-slate-900"
-      }`}
-    >
-      <Navbar />
+      }`;
+  const contentClass = embedded
+    ? "mx-auto w-full max-w-7xl px-0 py-0"
+    : "mx-auto w-full max-w-7xl px-4 pb-16 pt-24 sm:px-6 lg:px-8";
 
-      <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+  return (
+    <div className={pageShellClass}>
+      {!embedded && <Navbar />}
+
+      <main className={contentClass}>
         <motion.section
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}

@@ -73,6 +73,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/activities"
+            element={
+              <ProtectedRoute>
+                <ActivityPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/about" element={<AboutPage />} />
 
           {/* Protected route */}

@@ -56,7 +56,7 @@ function groupActivities(activities) {
   return Object.entries(buckets).filter(([, value]) => value.length > 0);
 }
 
-export default function ActivityPage() {
+export default function ActivityPage({ embedded = false }) {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -126,12 +126,18 @@ export default function ActivityPage() {
   }, [activities]);
 
   const grouped = useMemo(() => groupActivities(filteredActivities), [filteredActivities]);
+  const pageShellClass = embedded
+    ? "w-full"
+    : `min-h-screen transition-colors duration-300 ${isDark ? "bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white" : "bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 text-slate-900"}`;
+  const contentClass = embedded
+    ? "mx-auto w-full max-w-6xl px-0 py-0"
+    : "mx-auto max-w-6xl px-4 pb-16 pt-24 sm:px-6 lg:px-8";
 
   if (loading) {
     return (
-      <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white" : "bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 text-slate-900"}`}>
-        <Navbar />
-        <div className="mx-auto max-w-6xl px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+      <div className={pageShellClass}>
+        {!embedded && <Navbar />}
+        <div className={contentClass}>
           <div className={`rounded-2xl border p-6 shadow-[0_15px_50px_rgba(15,23,42,0.08)] sm:p-8 ${isDark ? "border-white/10 bg-white/10 backdrop-blur-xl" : "border-gray-200/80 bg-white/80 backdrop-blur-xl"}`}>
             <div className={`mb-6 h-8 w-48 rounded-full ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
             <div className={`mb-4 h-4 w-72 rounded-full ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
@@ -150,9 +156,9 @@ export default function ActivityPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white" : "bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 text-slate-900"}`}>
-      <Navbar />
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+    <div className={pageShellClass}>
+      {!embedded && <Navbar />}
+      <main className={contentClass}>
         <motion.section
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
