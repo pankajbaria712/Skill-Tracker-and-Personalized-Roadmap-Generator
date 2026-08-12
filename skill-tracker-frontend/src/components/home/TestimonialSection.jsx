@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTheme } from "../ThemeProvider";
-import ElectricBorder from "../Animations/ElectricBorder/ElectricBorder";
+// import ElectricBorder from "../Animations/ElectricBorder/ElectricBorder";
 import { getComponentTheme } from "../../utils/themeUtils";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -140,13 +140,7 @@ const TestimonialSection = () => {
         {/* Testimonial Grid */}
         <div className="testimonial-cards-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {testimonials.map((testimonial, index) => (
-            <ElectricBorder
-              color="#7df9ff"
-              speed={1}
-              chaos={0.5}
-              thickness={2}
-              style={{ borderRadius: 16 }}
-            >
+            
               <div
                 className={`testimonial-card transition-all duration-300 p-6 shadow-lg flex flex-col cursor-target h-full rounded-2xl overflow-hidden ${
                   theme === "system"
@@ -195,7 +189,7 @@ const TestimonialSection = () => {
                   </div>
                 </div>
               </div>
-            </ElectricBorder>
+          
           ))}
         </div>
 
