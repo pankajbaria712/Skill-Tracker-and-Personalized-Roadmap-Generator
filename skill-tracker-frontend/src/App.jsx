@@ -11,6 +11,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Lenis from "lenis";
 import Preloader from "./components/Preloader";
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -95,6 +96,8 @@ function App() {
         </Routes>
       </Router>
     </ThemeProvider>
+
+    <Analytics />
   );
 }
 
