@@ -58,46 +58,48 @@ function App() {
   if (loading) return <Preloader />;
 
   return (
-    <ThemeProvider>
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/templates" element={<TemplatesPage />} />
-          <Route
-            path="/activity"
-            element={
-              <ProtectedRoute>
-                <ActivityPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/activities"
-            element={
-              <ProtectedRoute>
-                <ActivityPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/about" element={<AboutPage />} />
+    <>
+      <ThemeProvider>
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/templates" element={<TemplatesPage />} />
+            <Route
+              path="/activity"
+              element={
+                <ProtectedRoute>
+                  <ActivityPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/activities"
+              element={
+                <ProtectedRoute>
+                  <ActivityPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/about" element={<AboutPage />} />
 
-          {/* Protected route */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashBoard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Router>
-    </ThemeProvider>
+            {/* Protected route */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashBoard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Router>
+      </ThemeProvider>
 
-    <Analytics />
+      <Analytics />
+    </>
   );
 }
 
