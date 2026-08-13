@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Point search engines to the public sitemap
+Sitemap: https://skill-tracker-and-personalized-road.vercel.app/sitemap.xml

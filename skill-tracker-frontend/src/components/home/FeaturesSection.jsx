@@ -121,6 +121,7 @@ const FeatureSection = () => {
   return (
     <section
       ref={sectionRef}
+      id="features"
       className={`relative px-4 py-20 overflow-hidden transition-all duration-500 ${themeColors.background}`}
     >
       {/* Blobs */}

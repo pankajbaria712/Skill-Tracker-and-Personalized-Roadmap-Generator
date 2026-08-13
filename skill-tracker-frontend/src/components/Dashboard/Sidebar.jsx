@@ -166,7 +166,7 @@ export default function Sidebar({
       </div>
 
       {/* Navigation Section */}
-      <div className="flex flex-col flex-1 mt-4 px-1">
+      <div className="flex flex-col flex-1 mt-4 px-1 overflow-y-auto">
         {/* Back to Home */}
         <Link
           to="/"

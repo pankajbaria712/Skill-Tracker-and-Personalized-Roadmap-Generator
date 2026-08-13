@@ -88,6 +88,16 @@ html.lenis body {
   --sidebar-width: 240px; /* will be overridden by the component */
 }
 
+/* navbar height used to offset anchored scrolling so headings are not hidden */
+:root {
+  --scroll-offset: 72px;
+}
+
+/* Apply scroll margin so anchored sections are visible under fixed header */
+:where(section, h1, h2, h3)[id] {
+  scroll-margin-top: calc(var(--scroll-offset) + 12px);
+}
+
 /* Example: main content wrapper */
 .main-content {
   transition: padding-left 180ms ease;

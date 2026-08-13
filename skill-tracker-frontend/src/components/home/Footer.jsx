@@ -45,7 +45,7 @@ const Footer = () => {
           <ul className="space-y-2">
             <li>
               <a
-                href="#"
+                href="/#features"
                 className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               >
                 Features
@@ -53,7 +53,7 @@ const Footer = () => {
             </li>
             <li>
               <a
-                href="#"
+                href="/templates"
                 className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               >
                 Pricing
@@ -61,7 +61,7 @@ const Footer = () => {
             </li>
             <li>
               <a
-                href="#"
+                href="/#testimonials"
                 className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               >
                 Testimonials
@@ -69,7 +69,7 @@ const Footer = () => {
             </li>
             <li>
               <a
-                href="#"
+                href="/about"
                 className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               >
                 About Us
@@ -88,7 +88,7 @@ const Footer = () => {
           <ul className="space-y-2">
             <li>
               <a
-                href="#"
+                href="/about"
                 className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               >
                 Blog
@@ -96,7 +96,7 @@ const Footer = () => {
             </li>
             <li>
               <a
-                href="#"
+                href="/about"
                 className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               >
                 Support
@@ -104,7 +104,7 @@ const Footer = () => {
             </li>
             <li>
               <a
-                href="#"
+                href="/about"
                 className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               >
                 FAQ
@@ -123,7 +123,7 @@ const Footer = () => {
           <ul className="space-y-2">
             <li>
               <a
-                href="#"
+                href="/privacy"
                 className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               >
                 Privacy Policy
@@ -131,7 +131,7 @@ const Footer = () => {
             </li>
             <li>
               <a
-                href="#"
+                href="/terms"
                 className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               >
                 Terms of Service
@@ -146,9 +146,9 @@ const Footer = () => {
           <div className="flex space-x-4">
             {/* Social Media Icons (placeholders) */}
             <a
-              href="#"
+              href="mailto:pankajbaria712@gmail.com"
               className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
-              aria-label="Twitter"
+              aria-label="Email"
             >
               {/* Twitter Icon SVG */}
               <svg
@@ -167,7 +167,9 @@ const Footer = () => {
               </svg>
             </a>
             <a
-              href="#"
+              href="https://www.linkedin.com/in/pankaj-baria-619253274/"
+              target="_blank"
+              rel="noopener noreferrer"
               className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               aria-label="LinkedIn"
             >
@@ -189,7 +191,9 @@ const Footer = () => {
               </svg>
             </a>
             <a
-              href="#"
+              href="https://github.com/pankajbaria712"
+              target="_blank"
+              rel="noopener noreferrer"
               className={`hover:text-opacity-100 transition-colors duration-200 cursor-target ${themeColors.textSecondary}`}
               aria-label="Github"
             >

@@ -110,6 +110,7 @@ const TestimonialSection = () => {
   return (
     <section
       ref={sectionRef}
+      id="testimonials"
       className={`px-4 py-20 overflow-hidden transition-all duration-500 ${themeColors.background}`}
     >
       <div className="max-w-7xl mx-auto relative z-10">

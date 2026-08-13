@@ -95,7 +95,7 @@ export default function DashboardNavbar() {
         <div className="h-14 flex items-center justify-between">
           {/* Logo and App Name - Dynamically styled for brand consistency */}
           <Link
-            to="/home"
+            to="/"
             className={`flex items-center gap-2 hover:opacity-90 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${focusRingOffsetClass}`}
             aria-label="Go to Home"
           >
@@ -123,7 +123,7 @@ export default function DashboardNavbar() {
                 key={item.name}
                 to={item.path}
                 className={getNavLinkClasses}
-                end={item.path === "/home"} // `end` prop for exact matching on home link
+                end={item.path === "/"} // `end` prop for exact matching on home link
               >
                 <item.icon size={16} aria-hidden="true" />
                 <span className="text-sm">{item.name}</span>

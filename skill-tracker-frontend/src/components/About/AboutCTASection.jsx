@@ -137,8 +137,8 @@ const AboutCTASection = () => {
             Explore Dashboard
           </button>
 
-          <a
-            href="#"
+          <button
+            onClick={() => navigate("/about")}
             className={`px-8 md:px-10 py-4 md:py-5 border-2 font-bold text-lg rounded-lg transition-all duration-300 transform hover:scale-105 cursor-target ${
               theme === "light"
                 ? "border-gray-400 text-gray-600 hover:bg-gray-100"
@@ -148,7 +148,7 @@ const AboutCTASection = () => {
             }`}
           >
             Learn More
-          </a>
+          </button>
         </div>
 
         {/* Additional Info */}

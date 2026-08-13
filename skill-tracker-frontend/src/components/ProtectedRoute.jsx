@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/SignIn" replace />;
+    return <Navigate to="/signin" replace />;
   }
 
   return children;
